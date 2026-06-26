@@ -1,14 +1,16 @@
-import Client from '@wildix/xbees-connect';
+kimport Client from '@wildix/xbees-connect';
 
 const BACKEND = (import.meta as any).env?.VITE_BACKEND_URL ?? '';
 
-// Comunica a x-bees che il widget è autorizzato
-Client.getInstance().ready();
-Client.getInstance().isAuthorized();
+const client = Client.getInstance();
+
+// 1. Prima ready() poi subito isAuthorized()
+client.ready();
+client.isAuthorized();
 
 // ── DAEMON MODE ──────────────────────────────────────────────
 
-Client.getInstance().onSuggestContacts(async (query: string, resolve: any, reject: any) => {
+client.onSuggestContacts(async (query: string, resolve: any, reject: any) => {
   try {
     const r = await fetch(`${BACKEND}/api/zoho/contacts/search?q=${encodeURIComponent(query)}`);
     resolve(await r.json());
@@ -17,7 +19,7 @@ Client.getInstance().onSuggestContacts(async (query: string, resolve: any, rejec
   }
 });
 
-Client.getInstance().onLookupAndMatchContact(async ({ phone }: { phone: string }, resolve: any, reject: any) => {
+client.onLookupAndMatchContact(async ({ phone }: { phone: string }, resolve: any, reject: any) => {
   try {
     const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
     const contact = await r.json();
