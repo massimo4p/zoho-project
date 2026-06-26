@@ -11,12 +11,16 @@ router.get('/lookup', async (req, res) => {
     const { phone } = req.query;
     const token = await getZohoToken();
 
-    const r = await fetch(`${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`, {
+    const url = `${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`;
+    console.log('[lookup] chiamata:', url);
+
+    const r = await fetch(url, {
       headers: { Authorization: `Zoho-oauthtoken ${token}` }
     });
     const data = await r.json();
-    const c = data?.data?.[0];
+    console.log('[lookup] risposta Zoho:', JSON.stringify(data));
 
+    const c = data?.data?.[0];
     if (!c) return res.json(null);
 
     res.json({
@@ -26,7 +30,8 @@ router.get('/lookup', async (req, res) => {
       url:     contactUrl(c.id),
     });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('[lookup] errore:', e.message);
+    res.json(null);
   }
 });
 
@@ -41,6 +46,7 @@ router.get('/search', async (req, res) => {
     });
     const data = await r.json();
 
+    // sempre un array, anche in caso di errore Zoho
     const contacts = (data?.data ?? []).map(c => ({
       name:    `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
       company: c.Account_Name?.name ?? '',
@@ -50,10 +56,9 @@ router.get('/search', async (req, res) => {
 
     res.json(contacts);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.json([]); // mai un errore, sempre array vuoto
   }
 });
-
 // Crea nuovo contatto
 router.post('/', async (req, res) => {
   try {

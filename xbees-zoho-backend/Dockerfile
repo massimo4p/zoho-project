@@ -1,34 +1,20 @@
-# Usa una versione specifica per stabilità (node:22-alpine è ottimo)
-FROM node:22-alpine AS builder
-
-# Imposta l'ambiente di produzione
-ENV NODE_ENV=production
-
-WORKDIR /app
-
-# Copia prima solo i file delle dipendenze
-# Questo permette a Docker di usare la cache: se package.json non cambia,
-# questa operazione è istantanea.
-COPY package*.json ./
-
-# Installa le dipendenze in modo pulito e veloce
-# 'npm ci' è il comando standard per produzione (richiede package-lock.json)
-RUN npm ci --only=production
-
-# Copia il resto del codice sorgente
-COPY . .
-
-# --- Fase finale (per ridurre la dimensione dell'immagine) ---
+# Usa un'immagine leggera
 FROM node:22-alpine
 
+# Imposta la directory di lavoro
 WORKDIR /app
 
-# Copia solo le dipendenze installate e il codice necessario
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app .
+# Copia i file necessari per le dipendenze
+COPY package*.json ./
 
-# Per sicurezza, esegui come utente non-root
-USER node
+# Installa le dipendenze (assicurati che package-lock.json sia nel repository!)
+RUN npm ci --only=production
 
+# Copia tutto il resto del codice
+COPY . .
+
+# Esponi la porta del tuo server
 EXPOSE 3002
+
+# Avvia l'applicazione
 CMD ["node", "server.js"]
