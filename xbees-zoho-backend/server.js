@@ -20,6 +20,19 @@ app.get('/health', (req, res) => {
 // app.use('/api/zoho/leads',    require('./modules/leads'));
 // app.use('/zoho/webhook',      require('./modules/webhook-rx'));
 
+// test token Zoho
+app.get('/api/zoho/test', async (req, res) => {
+  try {
+    const { getZohoToken } = require('./lib/zoho-auth');
+    const token = await getZohoToken();
+    res.json({ ok: true, token: token.substring(0, 20) + '...' });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`xbees-zoho-backend in ascolto sulla porta ${PORT}`);
 });
+
+
