@@ -1,2 +1,5 @@
+[phases.setup]
+nixPkgs = ["nginx"]
+
 [start]
-cmd = "npx serve dist -p 4173"
+cmd = "nginx -c /app/nginx.conf -g 'daemon off;'"
