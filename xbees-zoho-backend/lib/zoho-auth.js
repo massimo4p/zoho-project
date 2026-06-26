@@ -25,6 +25,11 @@ async function getZohoToken() {
   }
 
   const data = await r.json();
+  console.log('[zoho-auth] risposta:', JSON.stringify(data));
+
+  if (!data.access_token) {
+    throw new Error(`Token non ricevuto: ${JSON.stringify(data)}`);
+  }
 
   tokenCache = {
     token:     data.access_token,

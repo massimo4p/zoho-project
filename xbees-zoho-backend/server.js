@@ -27,12 +27,10 @@ app.get('/api/zoho/test', async (req, res) => {
     const token = await getZohoToken();
     res.json({ ok: true, token: token.substring(0, 20) + '...' });
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    res.status(500).json({ ok: false, error: e.message, stack: e.stack });
   }
 });
 
 app.listen(PORT, () => {
   console.log(`xbees-zoho-backend in ascolto sulla porta ${PORT}`);
 });
-
-
