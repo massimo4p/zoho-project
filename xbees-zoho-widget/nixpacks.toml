@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nginx"]
+nixPkgs = ["nodejs_22", "nginx"]
 
 [start]
 cmd = "nginx -c /app/nginx.conf -g 'daemon off;'"
