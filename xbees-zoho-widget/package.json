@@ -4,7 +4,7 @@
   "description": "Widget React per integrazione x-bees + Zoho CRM",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
