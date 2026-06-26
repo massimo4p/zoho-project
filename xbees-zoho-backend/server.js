@@ -16,8 +16,7 @@ app.get('/health', (req, res) => {
 // moduli (verranno aggiunti progressivamente)
 // app.use('/api/zoho/contacts', require('./modules/contacts'));
 app.use('/api/zoho/contacts', require('./modules/contacts'));
-
-// app.use('/api/zoho/deals',    require('./modules/deals'));
+app.use('/api/zoho/deals',    require('./modules/deals'));
 // app.use('/api/zoho/activities', require('./modules/activities'));
 // app.use('/api/zoho/leads',    require('./modules/leads'));
 // app.use('/zoho/webhook',      require('./modules/webhook-rx'));
