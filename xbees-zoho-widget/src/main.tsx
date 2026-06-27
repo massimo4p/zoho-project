@@ -17,16 +17,18 @@ client.onSuggestContacts(async (query: string, resolve: any, reject: any) => {
 
 client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) => {
   const phone = typeof payload === 'string' ? payload : payload?.phone;
-  if (!phone) { resolve(null); return; } // ignora email e altri
+  if (!phone) { resolve(null); return; }
   try {
     const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
-    resolve(await r.json());
+    const contact = await r.json();
+    resolve(contact);
+    if (contact) client.contactMatchUpdated(payload, contact);
   } catch (e: any) {
     reject(e);
   }
 });
+
 Client.initialize(async () => {
   const { startUI } = await import('./startUI');
   startUI();
 });
-// Sat 27 Jun 17:26:35 CEST 2026
