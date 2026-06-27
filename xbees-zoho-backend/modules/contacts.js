@@ -1,4 +1,4 @@
-const express = require('express');
+/const express = require('express');
 const router = express.Router();
 const { getZohoToken } = require('../lib/zoho-auth');
 const { contactUrl } = require('../lib/zoho-url');
@@ -12,6 +12,8 @@ router.get('/lookup', async (req, res) => {
     const token = await getZohoToken();
 
     const url = `${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`;
+    console.log('[lookup] phone ricevuto:', phone);
+    console.log('[lookup] url:', url);
     console.log('[lookup] chiamata:', url);
 
     const r = await fetch(url, {
