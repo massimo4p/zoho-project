@@ -25,7 +25,7 @@ router.get('/lookup', async (req, res) => {
       const c = d?.data?.[0];
       if (c) return res.json({
         name:    `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
-        company: c.Account_Name?.name ?? '',
+        organization: c.Account_Name?.name ?? '',
         phone:   c.Phone ?? phone,
         url:     contactUrl(c.id),
       });
@@ -37,7 +37,7 @@ router.get('/lookup', async (req, res) => {
       const a = d?.data?.[0];
       if (a) return res.json({
         name:    a.Account_Name ?? '',
-        company: a.Account_Name ?? '',
+        organization: a.Account_Name ?? '',
         phone:   a.Phone ?? phone,
         url:     `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Accounts/${a.id}`,
       });
@@ -49,7 +49,7 @@ router.get('/lookup', async (req, res) => {
       const l = d?.data?.[0];
       if (l) return res.json({
         name:    `${l.First_Name ?? ''} ${l.Last_Name ?? ''}`.trim(),
-        company: l.Company ?? '',
+        organization: l.Company ?? '',
         phone:   l.Phone ?? phone,
         url:     `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Leads/${l.id}`,
       });
@@ -75,7 +75,7 @@ router.get('/search', async (req, res) => {
     // sempre un array, anche in caso di errore Zoho
     const contacts = (data?.data ?? []).map(c => ({
       name:    `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
-      company: c.Account_Name?.name ?? '',
+      organization: c.Account_Name?.name ?? '',
       phone:   c.Phone ?? c.Mobile ?? '',
       url:     contactUrl(c.id),
     }));
