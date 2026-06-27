@@ -10,29 +10,54 @@ router.get('/lookup', async (req, res) => {
   try {
     const { phone } = req.query;
     const token = await getZohoToken();
-//    const url = `${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`;
-    const url = `${ZOHO_API}/Contacts/search?criteria=(Phone:equals:${encodeURIComponent(phone)})`;
+    const headers = { Authorization: `Zoho-oauthtoken ${token}` };
 
-    console.log('[lookup]', new Date().toISOString(), 'phone:', phone);
+    // Cerca in parallelo su tutti i moduli
+    const [contactsRes, accountsRes, leadsRes] = await Promise.all([
+      fetch(`${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`, { headers }),
+      fetch(`${ZOHO_API}/Accounts/search?phone=${encodeURIComponent(phone)}`, { headers }),
+      fetch(`${ZOHO_API}/Leads/search?phone=${encodeURIComponent(phone)}`, { headers }),
+    ]);
 
-    const r = await fetch(url, {
-      headers: { Authorization: `Zoho-oauthtoken ${token}` }
-    });
-    const text = await r.text();
-    console.log('[lookup]', new Date().toISOString(), 'status:', r.status, 'raw:', text);
+    // Contacts
+    if (contactsRes.status === 200) {
+      const d = await contactsRes.json();
+      const c = d?.data?.[0];
+      if (c) return res.json({
+        name:    `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
+        company: c.Account_Name?.name ?? '',
+        phone:   c.Phone ?? phone,
+        url:     contactUrl(c.id),
+      });
+    }
 
-    const data = JSON.parse(text);
-    const c = data?.data?.[0];
-    if (!c) return res.json(null);
+    // Accounts
+    if (accountsRes.status === 200) {
+      const d = await accountsRes.json();
+      const a = d?.data?.[0];
+      if (a) return res.json({
+        name:    a.Account_Name ?? '',
+        company: a.Account_Name ?? '',
+        phone:   a.Phone ?? phone,
+        url:     `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Accounts/${a.id}`,
+      });
+    }
 
-    res.json({
-      name:    `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
-      company: c.Account_Name?.name ?? '',
-      phone:   c.Phone ?? phone,
-      url:     contactUrl(c.id),
-    });
+    // Leads
+    if (leadsRes.status === 200) {
+      const d = await leadsRes.json();
+      const l = d?.data?.[0];
+      if (l) return res.json({
+        name:    `${l.First_Name ?? ''} ${l.Last_Name ?? ''}`.trim(),
+        company: l.Company ?? '',
+        phone:   l.Phone ?? phone,
+        url:     `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Leads/${l.id}`,
+      });
+    }
+
+    res.json(null);
   } catch (e) {
-    console.error('[lookup]', new Date().toISOString(), 'errore:', e.message);
+    console.error('[lookup] errore:', e.message);
     res.json(null);
   }
 });
