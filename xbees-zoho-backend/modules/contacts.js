@@ -3,7 +3,7 @@ const router = express.Router();
 const { getZohoToken } = require('../lib/zoho-auth');
 const { contactUrl } = require('../lib/zoho-url');
 
-const ZOHO_API = 'https://www.zohoapis.eu/crm/v7';
+const ZOHO_API = 'https://www.zohoapis.eu/crm/v8';
 
 // Lookup per numero di telefono — usato dal daemon onLookupAndMatchContact
 router.get('/lookup', async (req, res) => {

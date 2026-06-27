@@ -3,7 +3,7 @@ const router = express.Router();
 const { getZohoToken } = require('../lib/zoho-auth');
 const { dealUrl } = require('../lib/zoho-url');
 
-const ZOHO_API = 'https://www.zohoapis.eu/crm/v7';
+const ZOHO_API = 'https://www.zohoapis.eu/crm/v8';
 
 // Deal collegati a un contatto
 router.get('/contact/:contactId', async (req, res) => {
