@@ -10,18 +10,16 @@ router.get('/lookup', async (req, res) => {
   try {
     const { phone } = req.query;
     const token = await getZohoToken();
-
     const url = `${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`;
-    console.log('[lookup] phone ricevuto:', phone);
-    console.log('[lookup] url:', url);
-    console.log('[lookup] chiamata:', url);
+    console.log('[lookup]', new Date().toISOString(), 'phone:', phone);
 
     const r = await fetch(url, {
       headers: { Authorization: `Zoho-oauthtoken ${token}` }
     });
-    const data = await r.json();
-    console.log('[lookup] risposta Zoho:', JSON.stringify(data));
+    const text = await r.text();
+    console.log('[lookup]', new Date().toISOString(), 'status:', r.status, 'raw:', text);
 
+    const data = JSON.parse(text);
     const c = data?.data?.[0];
     if (!c) return res.json(null);
 
@@ -32,11 +30,10 @@ router.get('/lookup', async (req, res) => {
       url:     contactUrl(c.id),
     });
   } catch (e) {
-    console.error('[lookup] errore:', e.message);
+    console.error('[lookup]', new Date().toISOString(), 'errore:', e.message);
     res.json(null);
   }
 });
-
 // Ricerca full-text — usata dal daemon onSuggestContacts
 router.get('/search', async (req, res) => {
   try {
