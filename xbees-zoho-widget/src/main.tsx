@@ -1,4 +1,4 @@
-kimport Client from '@wildix/xbees-connect';
+import Client from '@wildix/xbees-connect';
 
 const BACKEND = (import.meta as any).env?.VITE_BACKEND_URL ?? '';
 const client = Client.getInstance();
