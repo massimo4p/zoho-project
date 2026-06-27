@@ -10,7 +10,9 @@ router.get('/lookup', async (req, res) => {
   try {
     const { phone } = req.query;
     const token = await getZohoToken();
-    const url = `${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`;
+//    const url = `${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`;
+    const url = `${ZOHO_API}/Contacts/search?criteria=(Phone:equals:${encodeURIComponent(phone)})`;
+
     console.log('[lookup]', new Date().toISOString(), 'phone:', phone);
 
     const r = await fetch(url, {
