@@ -14,7 +14,6 @@ client.onSuggestContacts(async (query: string, resolve: any, reject: any) => {
   try {
     const r = await fetch(`${BACKEND}/api/zoho/contacts/search?q=${encodeURIComponent(query)}`);
     const data = await r.json();
-    log.debug('onSuggestContacts result', { count: data.length });
     resolve(data);
   } catch (e: any) {
     log.error('onSuggestContacts failed', e.message);
@@ -23,7 +22,6 @@ client.onSuggestContacts(async (query: string, resolve: any, reject: any) => {
 });
 
 client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) => {
-  log.debug('onLookupAndMatchContact raw payload', payload);
   const phone = typeof payload === 'string' ? payload : payload?.phone;
   log.debug('onLookupAndMatchContact', { phone });
   if (!phone) { resolve(null); return; }
@@ -31,7 +29,6 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
     const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
     const contact = await r.json();
     log.debug('onLookupAndMatchContact result', contact);
-    // Salva sempre il phone in storage per l'UI mode
     if (contact) client.saveToStorage('lastCallPhone', phone);
     resolve(contact);
     if (contact) client.contactMatchUpdated(payload, contact);
@@ -41,9 +38,22 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
   }
 });
 
+client.onCallStarted((payload: any) => {
+  log.info('onCallStarted', payload);
+  const phone = payload?.phone ?? payload?.phoneNumber ?? payload?.number;
+  if (phone) {
+    log.debug('salvo phone da onCallStarted', { phone });
+    client.saveToStorage('lastCallPhone', phone);
+  }
+});
+
+client.onCallEnded((payload: any) => {
+  log.info('onCallEnded', payload);
+  client.deleteFromStorage('lastCallPhone');
+});
+
 Client.initialize(async () => {
   log.info('UI mode init');
   const { startUI } = await import('./startUI');
   startUI();
 });
-

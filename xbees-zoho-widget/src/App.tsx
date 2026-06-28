@@ -45,7 +45,7 @@ const s: Record<string, React.CSSProperties> = {
   row:       { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid #f0f0f0' },
   label:     { color: '#999', fontSize: 12 },
   val:       { fontSize: 12, textAlign: 'right' as const, maxWidth: '60%' },
-  card:      { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8, cursor: 'default' },
+  card:      { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8 },
   cardLink:  { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8, cursor: 'pointer', textDecoration: 'none', display: 'block', color: 'inherit' },
   cardTitle: { fontWeight: 500, fontSize: 13 },
   cardMeta:  { fontSize: 11, color: '#aaa', marginTop: 4 },
@@ -104,25 +104,27 @@ export default function App() {
 
     const run = async () => {
       try {
-	const ctx = await Client.getInstance().getContext();
-	// Se context è null, nessuna chiamata attiva — pulisci storage
-	if (!(ctx as any)?.payload) {
-  		Client.getInstance().deleteFromStorage('lastCallPhone');
-  		setLoading(false);
-  		return;
-	}
-        log.info('context', (ctx as any)?.payload);
+        const ctx = await Client.getInstance().getContext();
+        const payload = (ctx as any)?.payload;
+        log.info('context', payload);
+
+        const ctxPhone = payload?.contact?.phone;
+        if (ctxPhone) {
+          await tryLookup(ctxPhone);
+          setLoading(false);
+          return;
+        }
+
         const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
-        if (lastPhone) { await tryLookup(lastPhone); setLoading(false); return; }
-        const res = await Client.getInstance().getCurrentContact();
-        const phone = (res as any)?.payload?.phone ?? (res as any)?.payload?.phones?.[0];
-        if (phone) { await tryLookup(phone); setLoading(false); return; }
-        const res2 = await Client.getInstance().getAvailableContactData();
-        const phones = (res2 as any)?.payload?.phones ?? [];
-        if (phones.length > 0) await tryLookup(phones[0]);
+        if (lastPhone) {
+          await tryLookup(lastPhone);
+          setLoading(false);
+          return;
+        }
+
+        setLoading(false);
       } catch (e) {
         log.error('run error', e);
-      } finally {
         setLoading(false);
       }
     };
@@ -157,7 +159,6 @@ export default function App() {
       </div>
 
       <div style={s.body}>
-
         {tab === 'summary' && (
           <>
             <div style={s.stat}>
@@ -211,7 +212,8 @@ export default function App() {
         {tab === 'desk' && (
           tickets.length === 0
             ? <div style={s.empty}>Nessun ticket trovato</div>
-            : tickets.map(t => (<a
+            : tickets.map(t => (
+              
                 key={t.id}
                 href={`https://desk.zoho.eu/agent/4personality/all/tickets/detail/${t.id}`}
                 target="_blank"
