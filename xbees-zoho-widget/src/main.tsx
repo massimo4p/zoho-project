@@ -3,7 +3,7 @@ import { log } from './logger';
 
 const BACKEND = (import.meta as any).env?.VITE_BACKEND_URL ?? '';
 const client = Client.getInstance();
-
+client.deleteFromStorage('lastCallPhone');
 log.info('daemon init', { backend: BACKEND });
 
 client.ready();
