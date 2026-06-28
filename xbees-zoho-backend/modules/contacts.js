@@ -5,53 +5,54 @@ const { contactUrl } = require('../lib/zoho-url');
 
 const ZOHO_API = 'https://www.zohoapis.eu/crm/v8';
 
-// Lookup per numero di telefono — usato dal daemon onLookupAndMatchContact
 router.get('/lookup', async (req, res) => {
   try {
     const { phone } = req.query;
     const token = await getZohoToken();
     const headers = { Authorization: `Zoho-oauthtoken ${token}` };
 
-    // Cerca in parallelo su tutti i moduli
     const [contactsRes, accountsRes, leadsRes] = await Promise.all([
       fetch(`${ZOHO_API}/Contacts/search?phone=${encodeURIComponent(phone)}`, { headers }),
       fetch(`${ZOHO_API}/Accounts/search?phone=${encodeURIComponent(phone)}`, { headers }),
       fetch(`${ZOHO_API}/Leads/search?phone=${encodeURIComponent(phone)}`, { headers }),
     ]);
 
-    // Contacts
     if (contactsRes.status === 200) {
       const d = await contactsRes.json();
       const c = d?.data?.[0];
       if (c) return res.json({
-        name:    `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
+        id:           c.id,
+        module:       'Contacts',
+        name:         `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
         organization: c.Account_Name?.name ?? '',
-        phone:   c.Phone ?? phone,
-        url:     contactUrl(c.id),
+        phone:        c.Phone ?? phone,
+        url:          contactUrl(c.id),
       });
     }
 
-    // Accounts
     if (accountsRes.status === 200) {
       const d = await accountsRes.json();
       const a = d?.data?.[0];
       if (a) return res.json({
-        name:    a.Account_Name ?? '',
+        id:           a.id,
+        module:       'Accounts',
+        name:         a.Account_Name ?? '',
         organization: a.Account_Name ?? '',
-        phone:   a.Phone ?? phone,
-        url:     `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Accounts/${a.id}`,
+        phone:        a.Phone ?? phone,
+        url:          `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Accounts/${a.id}`,
       });
     }
 
-    // Leads
     if (leadsRes.status === 200) {
       const d = await leadsRes.json();
       const l = d?.data?.[0];
       if (l) return res.json({
-        name:    `${l.First_Name ?? ''} ${l.Last_Name ?? ''}`.trim(),
+        id:           l.id,
+        module:       'Leads',
+        name:         `${l.First_Name ?? ''} ${l.Last_Name ?? ''}`.trim(),
         organization: l.Company ?? '',
-        phone:   l.Phone ?? phone,
-        url:     `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Leads/${l.id}`,
+        phone:        l.Phone ?? phone,
+        url:          `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Leads/${l.id}`,
       });
     }
 
@@ -61,36 +62,32 @@ router.get('/lookup', async (req, res) => {
     res.json(null);
   }
 });
-// Ricerca full-text — usata dal daemon onSuggestContacts
+
 router.get('/search', async (req, res) => {
   try {
     const { q } = req.query;
     const token = await getZohoToken();
-
     const r = await fetch(`${ZOHO_API}/Contacts/search?word=${encodeURIComponent(q)}&per_page=10`, {
       headers: { Authorization: `Zoho-oauthtoken ${token}` }
     });
     const data = await r.json();
-
-    // sempre un array, anche in caso di errore Zoho
     const contacts = (data?.data ?? []).map(c => ({
-      name:    `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
+      id:           c.id,
+      name:         `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
       organization: c.Account_Name?.name ?? '',
-      phone:   c.Phone ?? c.Mobile ?? '',
-      url:     contactUrl(c.id),
+      phone:        c.Phone ?? c.Mobile ?? '',
+      url:          contactUrl(c.id),
     }));
-
     res.json(contacts);
   } catch (e) {
-    res.json([]); // mai un errore, sempre array vuoto
+    res.json([]);
   }
 });
-// Crea nuovo contatto
+
 router.post('/', async (req, res) => {
   try {
     const { firstName, lastName, phone, company } = req.body;
     const token = await getZohoToken();
-
     const r = await fetch(`${ZOHO_API}/Contacts`, {
       method: 'POST',
       headers: {
