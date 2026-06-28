@@ -28,6 +28,19 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
   }
 });
 
+client.onDaemonCallStarted((payload: any) => {
+  console.log('[zoho] onDaemonCallStarted:', JSON.stringify(payload));
+  const phone = payload?.phone ?? payload?.remotePhone ?? payload?.callerPhone;
+  if (phone) {
+    console.log('[zoho] salvo phone in storage:', phone);
+    client.saveToStorage('lastCallPhone', phone);
+  }
+});
+
+client.onDaemonCallFinished(() => {
+  client.deleteFromStorage('lastCallPhone');
+});
+
 Client.initialize(async () => {
   const { startUI } = await import('./startUI');
   startUI();

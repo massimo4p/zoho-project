@@ -74,8 +74,10 @@ export default function App() {
     Client.getInstance().ready();
 
     const tryLookup = async (phone: string) => {
+      console.log('[zoho] tryLookup:', phone);
       const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
       const data = await r.json();
+      console.log('[zoho] contact:', JSON.stringify(data));
       if (!data) return;
       setContact(data);
       const mod = data.module ?? 'Contacts';
@@ -87,21 +89,39 @@ export default function App() {
       setTickets(await deskRes.json());
     };
 
-    Client.getInstance().getCurrentContact().then(async (res: any) => {
-      const phone = res?.payload?.phone ?? res?.payload?.phones?.[0];
-      if (phone) {
-        try { await tryLookup(phone); } catch(e) { console.error(e); }
-        setLoading(false);
-        return;
-      }
-      Client.getInstance().getAvailableContactData().then(async (res2: any) => {
-        const phones = res2?.payload?.phones ?? [];
-        if (phones.length > 0) {
-          try { await tryLookup(phones[0]); } catch(e) { console.error(e); }
+    const run = async () => {
+      try {
+        // 1. Prova dal storage (chiamata in corso)
+        const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
+        if (lastPhone) {
+          await tryLookup(lastPhone);
+          setLoading(false);
+          return;
         }
+
+        // 2. Prova getCurrentContact
+        const res = await Client.getInstance().getCurrentContact();
+        const phone = (res as any)?.payload?.phone ?? (res as any)?.payload?.phones?.[0];
+        if (phone) {
+          await tryLookup(phone);
+          setLoading(false);
+          return;
+        }
+
+        // 3. Prova getAvailableContactData
+        const res2 = await Client.getInstance().getAvailableContactData();
+        const phones = (res2 as any)?.payload?.phones ?? [];
+        if (phones.length > 0) {
+          await tryLookup(phones[0]);
+        }
+      } catch (e) {
+        console.error('[zoho] errore:', e);
+      } finally {
         setLoading(false);
-      }).catch(() => setLoading(false));
-    }).catch(() => setLoading(false));
+      }
+    };
+
+    run();
   }, []);
 
   if (loading) return <div style={{ ...s.wrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
@@ -134,7 +154,6 @@ export default function App() {
           <>
             <div style={s.row}><span style={s.label}>Azienda</span><span style={s.val}>{contact.organization || '—'}</span></div>
             <div style={s.row}><span style={s.label}>Telefono</span><span style={s.val}>{contact.phone}</span></div>
-            <div style={s.row}><span style={s.label}>Modulo Zoho</span><span style={s.val}>{contact.module ?? '—'}</span></div>
             <div style={s.actions}>
               <button style={s.btn} onClick={() => Client.getInstance().startCall(contact.phone)}>📞 Chiama</button>
               <button style={s.btn} onClick={() => window.open(contact.url, '_blank')}>Apri in Zoho</button>
