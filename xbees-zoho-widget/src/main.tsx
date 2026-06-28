@@ -23,6 +23,7 @@ client.onSuggestContacts(async (query: string, resolve: any, reject: any) => {
 });
 
 client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) => {
+  log.debug('onLookupAndMatchContact raw payload', payload);
   const phone = typeof payload === 'string' ? payload : payload?.phone;
   log.debug('onLookupAndMatchContact', { phone });
   if (!phone) { resolve(null); return; }
