@@ -105,6 +105,12 @@ export default function App() {
     const run = async () => {
       try {
 	const ctx = await Client.getInstance().getContext();
+	// Se context è null, nessuna chiamata attiva — pulisci storage
+	if (!(ctx as any)?.payload) {
+  		Client.getInstance().deleteFromStorage('lastCallPhone');
+  		setLoading(false);
+  		return;
+	}
         log.info('context', (ctx as any)?.payload);
         const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
         if (lastPhone) { await tryLookup(lastPhone); setLoading(false); return; }
@@ -206,7 +212,6 @@ export default function App() {
           tickets.length === 0
             ? <div style={s.empty}>Nessun ticket trovato</div>
             : tickets.map(t => (<a
-              
                 key={t.id}
                 href={`https://desk.zoho.eu/agent/4personality/all/tickets/detail/${t.id}`}
                 target="_blank"
