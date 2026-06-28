@@ -104,6 +104,8 @@ export default function App() {
 
     const run = async () => {
       try {
+	const ctx = await Client.getInstance().getContext();
+        log.info('context', (ctx as any)?.payload);
         const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
         if (lastPhone) { await tryLookup(lastPhone); setLoading(false); return; }
         const res = await Client.getInstance().getCurrentContact();
@@ -203,7 +205,7 @@ export default function App() {
         {tab === 'desk' && (
           tickets.length === 0
             ? <div style={s.empty}>Nessun ticket trovato</div>
-            : tickets.map(t => (
+            : tickets.map(t => (<a
               
                 key={t.id}
                 href={`https://desk.zoho.eu/agent/4personality/all/tickets/detail/${t.id}`}
