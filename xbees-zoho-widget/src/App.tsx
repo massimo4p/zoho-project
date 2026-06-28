@@ -212,8 +212,7 @@ export default function App() {
         {tab === 'desk' && (
           tickets.length === 0
             ? <div style={s.empty}>Nessun ticket trovato</div>
-            : tickets.map(t => (
-              
+            : tickets.map(t => ( <a              
                 key={t.id}
                 href={`https://desk.zoho.eu/agent/4personality/all/tickets/detail/${t.id}`}
                 target="_blank"
