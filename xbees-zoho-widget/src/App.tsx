@@ -53,10 +53,14 @@ const s: Record<string, React.CSSProperties> = {
   empty:     { color: '#aaa', textAlign: 'center' as const, marginTop: 40, fontSize: 13 },
   actions:   { display: 'flex', gap: 8, marginTop: 12 },
   btn:       { flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid #534AB7', background: 'transparent', color: '#534AB7', fontSize: 12, cursor: 'pointer' },
+  btnPrimary:{ flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid #534AB7', background: '#534AB7', color: '#fff', fontSize: 12, cursor: 'pointer' },
   stat:      { display: 'flex', gap: 8, marginBottom: 12 },
   statBox:   { flex: 1, border: '1px solid #eee', borderRadius: 8, padding: '8px 10px', textAlign: 'center' as const },
   statNum:   { fontSize: 20, fontWeight: 600, color: '#534AB7' },
   statLbl:   { fontSize: 11, color: '#aaa', marginTop: 2 },
+  input:     { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const },
+  textarea:  { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const, resize: 'vertical' as const, minHeight: 80 },
+  success:   { color: '#1a9e6f', fontSize: 12, padding: '8px 0' },
 };
 
 const statusColor: Record<string, string> = {
@@ -82,6 +86,11 @@ export default function App() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [tab, setTab] = useState<Tab>('summary');
   const [loading, setLoading] = useState(true);
+  const [showTicketForm, setShowTicketForm] = useState(false);
+  const [ticketSubject, setTicketSubject] = useState('');
+  const [ticketDesc, setTicketDesc] = useState('');
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [ticketDone, setTicketDone] = useState(false);
 
   useEffect(() => {
     Client.getInstance().ready();
@@ -132,6 +141,34 @@ export default function App() {
     run();
   }, []);
 
+  const createTicket = async () => {
+    if (!ticketSubject.trim()) return;
+    setTicketLoading(true);
+    try {
+      const r = await fetch(`${BACKEND}/api/zoho/desk/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: ticketSubject,
+          description: ticketDesc,
+          contactName: contact?.name,
+          contactPhone: contact?.phone,
+        }),
+      });
+      const data = await r.json();
+      if (data.ok) {
+        setTicketDone(true);
+        setShowTicketForm(false);
+        setTicketSubject('');
+        setTicketDesc('');
+      }
+    } catch (e) {
+      log.error('createTicket error', e);
+    } finally {
+      setTicketLoading(false);
+    }
+  };
+
   if (loading) return <div style={{ ...s.wrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
   if (!contact) return <div style={s.wrap}><div style={s.empty}>Nessun contatto Zoho trovato</div></div>;
 
@@ -175,22 +212,54 @@ export default function App() {
                 <div style={s.statLbl}>Ticket aperti</div>
               </div>
             </div>
+
             {calls[0] && (
               <div style={s.row}>
                 <span style={s.label}>Ultima chiamata</span>
                 <span style={s.val}>{formatDate(calls[0].startTime)}</span>
               </div>
             )}
+
             {tickets[0] && (
               <div style={s.row}>
                 <span style={s.label}>Ultimo ticket</span>
                 <span style={s.val}>{tickets[0].subject}</span>
               </div>
             )}
-            <div style={s.actions}>
-              <button style={s.btn} onClick={() => window.open(contact.url, '_blank')}>Apri in Zoho CRM</button>
-              <button style={s.btn} onClick={() => window.open(`https://desk.zoho.eu/agent/4personality/all/tickets/new`, '_blank')}>🎫 Nuovo ticket</button>
-            </div>
+
+            {ticketDone && (
+              <div style={s.success}>✓ Ticket creato con successo</div>
+            )}
+
+            {showTicketForm ? (
+              <div style={{ marginTop: 12 }}>
+                <input
+                  style={s.input}
+                  placeholder="Oggetto del ticket *"
+                  value={ticketSubject}
+                  onChange={e => setTicketSubject(e.target.value)}
+                />
+                <textarea
+                  style={s.textarea}
+                  placeholder="Descrizione (opzionale)"
+                  value={ticketDesc}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTicketDesc(e.target.value)}
+                />
+                <div style={s.actions}>
+                  <button style={{ ...s.btn, color: '#aaa', borderColor: '#ddd' }} onClick={() => setShowTicketForm(false)}>
+                    Annulla
+                  </button>
+                  <button style={s.btnPrimary} onClick={createTicket} disabled={ticketLoading}>
+                    {ticketLoading ? '...' : 'Crea ticket'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={s.actions}>
+                <button style={s.btn} onClick={() => window.open(contact.url, '_blank')}>Apri in CRM</button>
+                <button style={s.btn} onClick={() => { setShowTicketForm(true); setTicketDone(false); }}>🎫 Nuovo ticket</button>
+              </div>
+            )}
           </>
         )}
 
@@ -212,7 +281,8 @@ export default function App() {
         {tab === 'desk' && (
           tickets.length === 0
             ? <div style={s.empty}>Nessun ticket trovato</div>
-            : tickets.map(t => ( <a              
+            : tickets.map(t => (
+              
                 key={t.id}
                 href={`https://desk.zoho.eu/agent/4personality/all/tickets/detail/${t.id}`}
                 target="_blank"
