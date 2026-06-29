@@ -111,36 +111,33 @@ export default function App() {
       setTickets(await deskRes.json());
     };
 
-    const run = async () => {
-      try {
-        const ctx = await Client.getInstance().getContext();
-        const payload = (ctx as any)?.payload;
-        log.info('context', payload);
+const run = async () => {
+  try {
+    const ctx = await Client.getInstance().getContext();
+    const payload = (ctx as any)?.payload;
+    log.info('context', payload);
 
-        const ctxPhone = payload?.contact?.phone;
-        if (ctxPhone) {
-          await tryLookup(ctxPhone);
-          setLoading(false);
-          return;
-        }
+    const ctxPhone = payload?.contact?.phone;
+    if (ctxPhone) {
+      await tryLookup(ctxPhone);
+      setLoading(false);
+      return;
+    }
 
-        const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
-        if (lastPhone) {
-          await tryLookup(lastPhone);
-          setLoading(false);
-          return;
-        }
+    // Context null o senza phone — usa lastCallPhone se disponibile
+    const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
+    if (lastPhone) {
+      await tryLookup(lastPhone);
+      setLoading(false);
+      return;
+    }
 
-        setLoading(false);
-      } catch (e) {
-        log.error('run error', e);
-        setLoading(false);
-      }
-    };
-
-    run();
-  }, []);
-
+    setLoading(false);
+  } catch (e) {
+    log.error('run error', e);
+    setLoading(false);
+  }
+};
   const createTicket = async () => {
     if (!ticketSubject.trim()) return;
     setTicketLoading(true);
