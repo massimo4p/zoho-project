@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: process.env.WIDGET_ORIGIN || '*' }));
 app.use(express.json());
+app.use(express.static('public'));
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'xbees-zoho-backend' });
