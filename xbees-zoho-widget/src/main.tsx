@@ -57,3 +57,17 @@ Client.initialize(async () => {
   const { startUI } = await import('./startUI');
   startUI();
 });
+
+client.onDaemonCallStarted((payload: any) => {
+  log.info('onDaemonCallStarted', payload);
+  const phone = payload?.phone ?? payload?.remotePhone ?? payload?.number;
+  if (phone) {
+    log.debug('salvo phone da onDaemonCallStarted', { phone });
+    client.saveToStorage('lastCallPhone', phone);
+  }
+});
+
+client.onDaemonCallFinished((payload: any) => {
+  log.info('onDaemonCallFinished', payload);
+  client.deleteFromStorage('lastCallPhone');
+});
