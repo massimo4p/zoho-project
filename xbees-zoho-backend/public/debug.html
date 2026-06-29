@@ -4,34 +4,32 @@
     <meta charset="UTF-8">
     <title>x-bees Debug</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
-        #status { padding: 10px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; background: #e0e0e0; color: #666; }
-        #log { background: #000; color: #00ff00; padding: 15px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; border-radius: 5px; }
+        body { font-family: sans-serif; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        #log { background: #000; padding: 15px; height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px; border-radius: 5px; }
+        #status { padding: 10px; margin-bottom: 10px; background: #333; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <h2>x-bees Connect Debugger</h2>
+    <h2 style="color:#fff">x-bees Debug</h2>
     <div id="status">In attesa...</div>
     <div id="log">--- Log ---<br></div>
-    <script type="module">
-        import Client from 'https://cdn.skypack.dev/@wildix/xbees-connect';
+    <script>
         const log = document.getElementById('log');
         const status = document.getElementById('status');
         const add = (msg, data) => {
             const t = new Date().toLocaleTimeString();
-            log.innerHTML += `[${t}] ${msg} ${data ? JSON.stringify(data) : ''}<br>`;
+            const d = data ? JSON.stringify(data) : '';
+            log.innerHTML += `[${t}] ${msg} ${d}<br>`;
             log.scrollTop = log.scrollHeight;
+            console.log(msg, data);
         };
-        const x = Client.getInstance();
-        add('SDK init');
-        x.onCallStarted((p) => { add('onCallStarted', p); status.innerText = 'IN CHIAMATA'; });
-        x.onCallEnded((p) => { add('onCallEnded', p); status.innerText = 'CHIAMATA TERMINATA'; });
-        x.onDaemonCallStarted((p) => { add('onDaemonCallStarted', p); });
-        x.onDaemonCallFinished((p) => { add('onDaemonCallFinished', p); });
-        x.onLookupAndMatchContact(async (q, resolve) => { add('onLookupAndMatchContact', q); resolve(null); });
-        x.ready();
-        add('ready() inviato');
-        x.getContext().then(r => add('getContext', r?.payload));
+
+        // Ascolta tutti i messaggi postMessage da x-bees
+        window.addEventListener('message', (e) => {
+            add('postMessage ricevuto', { origin: e.origin, data: e.data });
+        });
+
+        add('Pagina caricata, in attesa di messaggi da x-bees...');
     </script>
 </body>
 </html>
