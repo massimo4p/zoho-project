@@ -17,44 +17,54 @@ router.get('/lookup', async (req, res) => {
       fetch(`${ZOHO_API}/Leads/search?phone=${encodeURIComponent(phone)}`, { headers }),
     ]);
 
+    let contact = null;
+    let account = null;
+    let lead = null;
+
     if (contactsRes.status === 200) {
       const d = await contactsRes.json();
       const c = d?.data?.[0];
-      if (c) return res.json({
+      if (c) contact = {
         id:           c.id,
         module:       'Contacts',
         name:         `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
         organization: c.Account_Name?.name ?? '',
         phone:        c.Phone ?? phone,
         url:          contactUrl(c.id),
-      });
+      };
     }
 
     if (accountsRes.status === 200) {
       const d = await accountsRes.json();
       const a = d?.data?.[0];
-      if (a) return res.json({
+      if (a) account = {
         id:           a.id,
         module:       'Accounts',
         name:         a.Account_Name ?? '',
         organization: a.Account_Name ?? '',
         phone:        a.Phone ?? phone,
         url:          `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Accounts/${a.id}`,
-      });
+      };
     }
 
     if (leadsRes.status === 200) {
       const d = await leadsRes.json();
       const l = d?.data?.[0];
-      if (l) return res.json({
+      if (l) lead = {
         id:           l.id,
         module:       'Leads',
         name:         `${l.First_Name ?? ''} ${l.Last_Name ?? ''}`.trim(),
         organization: l.Company ?? '',
         phone:        l.Phone ?? phone,
         url:          `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Leads/${l.id}`,
-      });
+      };
     }
+
+    // Priorità: Account > Contact con organizzazione > Contact senza organizzazione > Lead
+    if (account) return res.json(account);
+    if (contact?.organization) return res.json(contact);
+    if (contact) return res.json(contact);
+    if (lead) return res.json(lead);
 
     res.json(null);
   } catch (e) {
