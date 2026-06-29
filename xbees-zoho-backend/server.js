@@ -11,7 +11,7 @@ app.use(cors({
     'https://app.x-bees.com'
   ]
 }));
-app.use(cors({ origin: process.env.WIDGET_ORIGIN || '*' }));
+//app.use(cors({ origin: process.env.WIDGET_ORIGIN || '*' }));
 app.use(express.json());
 app.use(express.static('public'));
 
