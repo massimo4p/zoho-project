@@ -33,34 +33,34 @@ interface Ticket {
 type Tab = 'summary' | 'calls' | 'desk';
 
 const s: Record<string, React.CSSProperties> = {
-  wrap:       { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' },
-  header:     { padding: '12px 14px 0', borderBottom: '1px solid #eee' },
-  avatar:     { width: 38, height: 38, borderRadius: '50%', background: '#534AB7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 },
-  name:       { fontWeight: 600, fontSize: 14 },
-  sub:        { fontSize: 11, color: '#888', marginTop: 2 },
-  tabs:       { display: 'flex', borderBottom: '1px solid #eee', marginTop: 10 },
-  tab:        { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid transparent', color: '#888', marginBottom: -1 },
-  tabActive:  { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid #534AB7', color: '#534AB7', fontWeight: 500, marginBottom: -1 },
-  body:       { padding: '12px 14px', flex: 1, overflowY: 'auto' as const },
-  row:        { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid #f0f0f0' },
-  label:      { color: '#999', fontSize: 12 },
-  val:        { fontSize: 12, textAlign: 'right' as const, maxWidth: '60%' },
-  card:       { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8 },
-  cardLink:   { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8, cursor: 'pointer', textDecoration: 'none', display: 'block', color: 'inherit' },
-  cardTitle:  { fontWeight: 500, fontSize: 13 },
-  cardMeta:   { fontSize: 11, color: '#aaa', marginTop: 4 },
-  badge:      { fontSize: 11, padding: '2px 7px', borderRadius: 20, display: 'inline-block', marginTop: 4 },
-  empty:      { color: '#aaa', textAlign: 'center' as const, marginTop: 40, fontSize: 13 },
-  actions:    { display: 'flex', gap: 8, marginTop: 12 },
-  btn:        { flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid #534AB7', background: 'transparent', color: '#534AB7', fontSize: 12, cursor: 'pointer' },
-  btnPrimary: { flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid #534AB7', background: '#534AB7', color: '#fff', fontSize: 12, cursor: 'pointer' },
-  stat:       { display: 'flex', gap: 8, marginBottom: 12 },
-  statBox:    { flex: 1, border: '1px solid #eee', borderRadius: 8, padding: '8px 10px', textAlign: 'center' as const },
-  statNum:    { fontSize: 20, fontWeight: 600, color: '#534AB7' },
-  statLbl:    { fontSize: 11, color: '#aaa', marginTop: 2 },
-  input:      { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const },
-  textarea:   { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const, resize: 'vertical' as const, minHeight: 80 },
-  success:    { color: '#1a9e6f', fontSize: 12, padding: '8px 0' },
+  wrap:      { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' },
+  header:    { padding: '12px 14px 0', borderBottom: '1px solid #eee' },
+  avatar:    { width: 38, height: 38, borderRadius: '50%', background: '#534AB7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 },
+  name:      { fontWeight: 600, fontSize: 14 },
+  sub:       { fontSize: 11, color: '#888', marginTop: 2 },
+  tabs:      { display: 'flex', borderBottom: '1px solid #eee', marginTop: 10 },
+  tab:       { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid transparent', color: '#888', marginBottom: -1 },
+  tabActive: { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid #534AB7', color: '#534AB7', fontWeight: 500, marginBottom: -1 },
+  body:      { padding: '12px 14px', flex: 1, overflowY: 'auto' as const },
+  row:       { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: '1px solid #f0f0f0' },
+  label:     { color: '#999', fontSize: 12 },
+  val:       { fontSize: 12, textAlign: 'right' as const, maxWidth: '60%' },
+  card:      { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8 },
+  cardLink:  { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8, cursor: 'pointer', textDecoration: 'none', display: 'block', color: 'inherit' },
+  cardTitle: { fontWeight: 500, fontSize: 13 },
+  cardMeta:  { fontSize: 11, color: '#aaa', marginTop: 4 },
+  badge:     { fontSize: 11, padding: '2px 7px', borderRadius: 20, display: 'inline-block', marginTop: 4 },
+  empty:     { color: '#aaa', textAlign: 'center' as const, marginTop: 40, fontSize: 13 },
+  actions:   { display: 'flex', gap: 8, marginTop: 12 },
+  btn:       { flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid #534AB7', background: 'transparent', color: '#534AB7', fontSize: 12, cursor: 'pointer' },
+  btnPrimary:{ flex: 1, padding: '7px 0', borderRadius: 6, border: '1px solid #534AB7', background: '#534AB7', color: '#fff', fontSize: 12, cursor: 'pointer' },
+  stat:      { display: 'flex', gap: 8, marginBottom: 12 },
+  statBox:   { flex: 1, border: '1px solid #eee', borderRadius: 8, padding: '8px 10px', textAlign: 'center' as const },
+  statNum:   { fontSize: 20, fontWeight: 600, color: '#534AB7' },
+  statLbl:   { fontSize: 11, color: '#aaa', marginTop: 2 },
+  input:     { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const },
+  textarea:  { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const, resize: 'vertical' as const, minHeight: 80 },
+  success:   { color: '#1a9e6f', fontSize: 12, padding: '8px 0' },
 };
 
 const statusColor: Record<string, string> = {
@@ -181,11 +181,10 @@ export default function App() {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 10 }}>
           <div style={s.avatar}>{initials}</div>
           <div style={{ flex: 1 }}>
-            <div style={s.name}>
-              <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#1a1a1a', textDecoration: 'none' }}>{contact.name}</a>
-            </div>
+            <div style={s.name}>{contact.name}</div>
             <div style={s.sub}>{contact.organization} · {contact.phone}</div>
           </div>
+          <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#534AB7', fontSize: 18, textDecoration: 'none' }}>↗</a>
         </div>
         <div style={s.tabs}>
           {(['summary', 'calls', 'desk'] as Tab[]).map(t => (
@@ -210,22 +209,28 @@ export default function App() {
               </div>
               <div style={s.statBox}>
                 <div style={{ ...s.statNum, color: openTickets > 0 ? '#e08a00' : '#1a9e6f' }}>{openTickets}</div>
-                <div style={s.statLbl}>Aperti</div>
+                <div style={s.statLbl}>Ticket aperti</div>
               </div>
             </div>
+
             {calls[0] && (
               <div style={s.row}>
                 <span style={s.label}>Ultima chiamata</span>
                 <span style={s.val}>{formatDate(calls[0].startTime)}</span>
               </div>
             )}
+
             {tickets[0] && (
               <div style={s.row}>
                 <span style={s.label}>Ultimo ticket</span>
                 <span style={s.val}>{tickets[0].subject}</span>
               </div>
             )}
-            {ticketDone && <div style={s.success}>✓ Ticket creato</div>}
+
+            {ticketDone && (
+              <div style={s.success}>✓ Ticket creato con successo</div>
+            )}
+
             {showTicketForm ? (
               <div style={{ marginTop: 12 }}>
                 <input
@@ -241,7 +246,9 @@ export default function App() {
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTicketDesc(e.target.value)}
                 />
                 <div style={s.actions}>
-                  <button style={{ ...s.btn, color: '#aaa', borderColor: '#ddd' }} onClick={() => setShowTicketForm(false)}>Annulla</button>
+                  <button style={{ ...s.btn, color: '#aaa', borderColor: '#ddd' }} onClick={() => setShowTicketForm(false)}>
+                    Annulla
+                  </button>
                   <button style={s.btnPrimary} onClick={createTicket} disabled={ticketLoading}>
                     {ticketLoading ? '...' : 'Crea ticket'}
                   </button>
@@ -249,6 +256,7 @@ export default function App() {
               </div>
             ) : (
               <div style={s.actions}>
+                <button style={s.btn} onClick={() => window.open(contact.url, '_blank')}>Apri in CRM</button>
                 <button style={s.btn} onClick={() => { setShowTicketForm(true); setTicketDone(false); }}>🎫 Nuovo ticket</button>
               </div>
             )}
@@ -274,7 +282,8 @@ export default function App() {
           tickets.length === 0
             ? <div style={s.empty}>Nessun ticket trovato</div>
             : tickets.map(t => (
-              <a key={t.id}
+              
+                key={t.id}
                 href={`https://desk.zoho.eu/agent/4personality/all/tickets/detail/${t.id}`}
                 target="_blank"
                 rel="noreferrer"
