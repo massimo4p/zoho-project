@@ -53,6 +53,14 @@ async function upsertActiveCall(phone, active, callId) {
   }
 }
 
+// --- Debug: ultimo body webhook grezzo ricevuto ---
+
+let lastWebhookBody = null;
+
+app.get('/api/debug/last-webhook', (req, res) => {
+  res.json(lastWebhookBody);
+});
+
 app.post('/api/webhook/call', async (req, res) => {
   const secret = process.env.WILDIX_WEBHOOK_SECRET;
   const signature = req.headers['x-signature'];
@@ -69,6 +77,8 @@ app.post('/api/webhook/call', async (req, res) => {
   }
 
   const { type, data } = req.body;
+  lastWebhookBody = req.body;
+
   console.log(`[${new Date().toISOString()}] [webhook] type=${type} phone=${data?.caller?.phone} sipCallId=${data?.caller?.sipCallId} status=${data?.status}`);
 
   if (type === 'call:start' || type === 'call:update') {
@@ -117,15 +127,4 @@ app.get('/api/zoho/active-call', async (req, res) => {
   } catch (e) {
     res.json({ phone: null });
   }
-});
-
-// --- Route Zoho esistenti ---
-
-app.use('/api/zoho/contacts', require('./modules/contacts'));
-app.use('/api/zoho/deals', require('./modules/deals'));
-app.use('/api/zoho/activities', require('./modules/activities'));
-app.use('/api/zoho/desk', require('./modules/desk'));
-
-app.listen(PORT, () => {
-  console.log(`xbees-zoho-backend in ascolto sulla porta ${PORT}`);
 });
