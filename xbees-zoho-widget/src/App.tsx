@@ -111,7 +111,7 @@ export default function App() {
       setTickets(await deskRes.json());
     };
 
-    const run = async () => {
+const run = async () => {
   try {
     const ctx = await Client.getInstance().getContext();
     const payload = (ctx as any)?.payload;
@@ -124,6 +124,21 @@ export default function App() {
       return;
     }
 
+    const activeRes = await fetch(`${BACKEND}/api/zoho/active-call`);
+    const active = await activeRes.json();
+    log.debug('active-call', active);
+    if (active.phone) {
+      await tryLookup(active.phone);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+  } catch (e) {
+    log.error('run error', e);
+    setLoading(false);
+  }
+};
 // Nessun phone nel context (es. tab estesa) — chiedi al backend
     // qual è la chiamata attiva in questo momento
     const activeRes = await fetch(`${BACKEND}/api/zoho/active-call`);

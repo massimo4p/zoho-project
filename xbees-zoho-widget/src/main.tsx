@@ -29,7 +29,6 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
     const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
     const contact = await r.json();
     log.debug('onLookupAndMatchContact result', contact);
-    if (contact) client.saveToStorage('lastCallPhone', phone);
     resolve(contact);
     if (contact) client.contactMatchUpdated(payload, contact);
   } catch (e: any) {
