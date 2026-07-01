@@ -28,8 +28,9 @@ app.get('/api/zoho/test', async (req, res) => {
 
 async function upsertActiveCall(phone, active, callId) {
   try {
+    const filter = encodeURIComponent(`phone='${phone}'`);
     const searchRes = await fetch(
-      `${PB_URL}/api/collections/active_calls/records?filter=(phone='${phone}')`
+      `${PB_URL}/api/collections/active_calls/records?filter=${filter}`
     );
     const searchData = await searchRes.json();
     const existing = searchData?.items?.[0];
@@ -68,7 +69,7 @@ app.post('/api/webhook/call', async (req, res) => {
   }
 
   const { type, data } = req.body;
-  console.log(`[${new Date().toISOString()}] [webhook] RAW type=${type}`, JSON.stringify(data));
+  console.log(`[${new Date().toISOString()}] [webhook] type=${type}`);
 
   if (type === 'call:start' || type === 'call:update') {
     const phone = data?.caller?.phone;
@@ -93,8 +94,9 @@ app.post('/api/webhook/call', async (req, res) => {
 app.get('/api/zoho/call-status', async (req, res) => {
   try {
     const { phone } = req.query;
+    const filter = encodeURIComponent(`phone='${phone}'`);
     const r = await fetch(
-      `${PB_URL}/api/collections/active_calls/records?filter=(phone='${phone}')`
+      `${PB_URL}/api/collections/active_calls/records?filter=${filter}`
     );
     const data = await r.json();
     const record = data?.items?.[0];
