@@ -69,7 +69,7 @@ app.post('/api/webhook/call', async (req, res) => {
   }
 
   const { type, data } = req.body;
-  console.log(`[${new Date().toISOString()}] [webhook] type=${type}`);
+  console.log(`[${new Date().toISOString()}] [webhook] type=${type} phone=${data?.caller?.phone} sipCallId=${data?.caller?.sipCallId} status=${data?.status}`);
 
   if (type === 'call:start' || type === 'call:update') {
     const phone = data?.caller?.phone;
