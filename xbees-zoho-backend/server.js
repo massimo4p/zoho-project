@@ -89,50 +89,6 @@ app.post('/api/webhook/call', async (req, res) => {
 
   res.json({ ok: true });
 });
-  const { type, data } = req.body;
-  console.log(`[${new Date().toISOString()}] [webhook] ${type}`);
-
-  if (type === 'call:start' || type === 'call:update') {
-    const phone = data?.caller?.phone;
-    const callId = data?.caller?.sipCallId;
-    if (phone) {
-      console.log(`[${new Date().toISOString()}] [webhook] chiamata attiva: ${phone}`);
-      await upsertActiveCall(phone, true, callId);
-    }
-  }
-
-  if (type === 'call:end') {
-    const phone = data?.caller?.phone;
-    if (phone) {
-      console.log(`[${new Date().toISOString()}] [webhook] chiamata terminata: ${phone}`);
-      await upsertActiveCall(phone, false, null);
-    }
-  }
-
-  res.json({ ok: true });
-});
-  const { type, data } = req.body;
-  console.log('[webhook]', type);
-
-  if (type === 'call:start') {
-    const phone = data?.caller?.phone;
-    const callId = data?.caller?.sipCallId;
-    if (phone) {
-      console.log('[webhook] chiamata iniziata:', phone);
-      await upsertActiveCall(phone, true, callId);
-    }
-  }
-
-  if (type === 'call:end') {
-    const phone = data?.caller?.phone;
-    if (phone) {
-      console.log('[webhook] chiamata terminata:', phone);
-      await upsertActiveCall(phone, false, null);
-    }
-  }
-
-  res.json({ ok: true });
-});
 
 app.get('/api/zoho/call-status', async (req, res) => {
   try {
