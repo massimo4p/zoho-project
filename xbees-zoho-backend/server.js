@@ -62,11 +62,55 @@ app.post('/api/webhook/call', async (req, res) => {
       .update(JSON.stringify(req.body))
       .digest('hex');
     if (signature !== expected) {
-      console.log('[webhook] firma non valida');
+      console.log(`[${new Date().toISOString()}] [webhook] firma non valida`);
       return res.status(401).json({ error: 'Invalid signature' });
     }
   }
 
+  const { type, data } = req.body;
+  console.log(`[${new Date().toISOString()}] [webhook] RAW type=${type}`, JSON.stringify(data));
+
+  if (type === 'call:start' || type === 'call:update') {
+    const phone = data?.caller?.phone;
+    const callId = data?.caller?.sipCallId;
+    if (phone) {
+      console.log(`[${new Date().toISOString()}] [webhook] chiamata attiva: ${phone}`);
+      await upsertActiveCall(phone, true, callId);
+    }
+  }
+
+  if (type === 'call:end') {
+    const phone = data?.caller?.phone;
+    if (phone) {
+      console.log(`[${new Date().toISOString()}] [webhook] chiamata terminata: ${phone}`);
+      await upsertActiveCall(phone, false, null);
+    }
+  }
+
+  res.json({ ok: true });
+});
+  const { type, data } = req.body;
+  console.log(`[${new Date().toISOString()}] [webhook] ${type}`);
+
+  if (type === 'call:start' || type === 'call:update') {
+    const phone = data?.caller?.phone;
+    const callId = data?.caller?.sipCallId;
+    if (phone) {
+      console.log(`[${new Date().toISOString()}] [webhook] chiamata attiva: ${phone}`);
+      await upsertActiveCall(phone, true, callId);
+    }
+  }
+
+  if (type === 'call:end') {
+    const phone = data?.caller?.phone;
+    if (phone) {
+      console.log(`[${new Date().toISOString()}] [webhook] chiamata terminata: ${phone}`);
+      await upsertActiveCall(phone, false, null);
+    }
+  }
+
+  res.json({ ok: true });
+});
   const { type, data } = req.body;
   console.log('[webhook]', type);
 
