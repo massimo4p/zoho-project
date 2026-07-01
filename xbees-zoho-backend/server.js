@@ -1,9 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const PB_URL = process.env.POCKETBASE_URL || 'http://pocketbase.local';
 
 app.use(cors({ origin: process.env.WIDGET_ORIGIN || '*' }));
 app.use(express.json());
@@ -21,12 +23,39 @@ app.get('/api/zoho/test', async (req, res) => {
     res.status(500).json({ ok: false, error: e.message, stack: e.stack });
   }
 });
-const crypto = require('crypto');
 
-app.post('/api/webhook/call', (req, res) => {
+// --- PocketBase: tracciamento chiamate attive ---
+
+async function upsertActiveCall(phone, active, callId) {
+  try {
+    const searchRes = await fetch(
+      `${PB_URL}/api/collections/active_calls/records?filter=(phone='${phone}')`
+    );
+    const searchData = await searchRes.json();
+    const existing = searchData?.items?.[0];
+
+    if (existing) {
+      await fetch(`${PB_URL}/api/collections/active_calls/records/${existing.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active, call_id: callId }),
+      });
+    } else {
+      await fetch(`${PB_URL}/api/collections/active_calls/records`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, active, call_id: callId }),
+      });
+    }
+  } catch (e) {
+    console.error('[pocketbase] errore:', e.message);
+  }
+}
+
+app.post('/api/webhook/call', async (req, res) => {
   const secret = process.env.WILDIX_WEBHOOK_SECRET;
   const signature = req.headers['x-signature'];
-  
+
   if (secret && signature) {
     const expected = crypto
       .createHmac('sha256', secret)
@@ -39,15 +68,48 @@ app.post('/api/webhook/call', (req, res) => {
   }
 
   const { type, data } = req.body;
-  console.log('[webhook]', type, JSON.stringify(data));
+  console.log('[webhook]', type);
+
+  if (type === 'call:start') {
+    const phone = data?.caller?.phone;
+    const callId = data?.caller?.sipCallId;
+    if (phone) {
+      console.log('[webhook] chiamata iniziata:', phone);
+      await upsertActiveCall(phone, true, callId);
+    }
+  }
+
+  if (type === 'call:end') {
+    const phone = data?.caller?.phone;
+    if (phone) {
+      console.log('[webhook] chiamata terminata:', phone);
+      await upsertActiveCall(phone, false, null);
+    }
+  }
 
   res.json({ ok: true });
 });
 
-app.use('/api/zoho/contacts',   require('./modules/contacts'));
-app.use('/api/zoho/deals',      require('./modules/deals'));
+app.get('/api/zoho/call-status', async (req, res) => {
+  try {
+    const { phone } = req.query;
+    const r = await fetch(
+      `${PB_URL}/api/collections/active_calls/records?filter=(phone='${phone}')`
+    );
+    const data = await r.json();
+    const record = data?.items?.[0];
+    res.json({ active: record?.active ?? false });
+  } catch (e) {
+    res.json({ active: false });
+  }
+});
+
+// --- Route Zoho esistenti ---
+
+app.use('/api/zoho/contacts', require('./modules/contacts'));
+app.use('/api/zoho/deals', require('./modules/deals'));
 app.use('/api/zoho/activities', require('./modules/activities'));
-app.use('/api/zoho/desk',       require('./modules/desk'));
+app.use('/api/zoho/desk', require('./modules/desk'));
 
 app.listen(PORT, () => {
   console.log(`xbees-zoho-backend in ascolto sulla porta ${PORT}`);
