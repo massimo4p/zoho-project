@@ -104,6 +104,19 @@ app.get('/api/zoho/call-status', async (req, res) => {
   }
 });
 
+app.get('/api/zoho/active-call', async (req, res) => {
+  try {
+    const r = await fetch(
+      `${PB_URL}/api/collections/active_calls/records?filter=(active=true)&sort=-updated&perPage=1`
+    );
+    const data = await r.json();
+    const record = data?.items?.[0];
+    res.json({ phone: record?.phone ?? null });
+  } catch (e) {
+    res.json({ phone: null });
+  }
+});
+
 // --- Route Zoho esistenti ---
 
 app.use('/api/zoho/contacts', require('./modules/contacts'));

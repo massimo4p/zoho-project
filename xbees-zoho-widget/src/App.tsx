@@ -124,19 +124,17 @@ export default function App() {
       return;
     }
 
-    // Nessun phone nel context (es. tab estesa) — chiedi al backend
-    // se c'è una chiamata attiva per l'ultimo numero salvato
-    const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
-    if (lastPhone) {
-      const statusRes = await fetch(`${BACKEND}/api/zoho/call-status?phone=${encodeURIComponent(lastPhone)}`);
-      const status = await statusRes.json();
-      if (status.active) {
-        await tryLookup(lastPhone);
-        setLoading(false);
-        return;
-      }
+// Nessun phone nel context (es. tab estesa) — chiedi al backend
+    // qual è la chiamata attiva in questo momento
+    const activeRes = await fetch(`${BACKEND}/api/zoho/active-call`);
+    const active = await activeRes.json();
+    if (active.phone) {
+      await tryLookup(active.phone);
+      setLoading(false);
+      return;
     }
 
+    setLoading(false);
     setLoading(false);
   } catch (e) {
     log.error('run error', e);
