@@ -112,31 +112,37 @@ export default function App() {
     };
 
     const run = async () => {
-      try {
-        const ctx = await Client.getInstance().getContext();
-        const payload = (ctx as any)?.payload;
-        log.info('context', payload);
+  try {
+    const ctx = await Client.getInstance().getContext();
+    const payload = (ctx as any)?.payload;
+    log.info('context', payload);
 
-        const ctxPhone = payload?.contact?.phone;
-        if (ctxPhone) {
-          await tryLookup(ctxPhone);
-          setLoading(false);
-          return;
-        }
+    const ctxPhone = payload?.contact?.phone;
+    if (ctxPhone) {
+      await tryLookup(ctxPhone);
+      setLoading(false);
+      return;
+    }
 
-        const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
-        if (lastPhone) {
-          await tryLookup(lastPhone);
-          setLoading(false);
-          return;
-        }
-
+    // Nessun phone nel context (es. tab estesa) — chiedi al backend
+    // se c'è una chiamata attiva per l'ultimo numero salvato
+    const lastPhone = Client.getInstance().getFromStorage<string>('lastCallPhone');
+    if (lastPhone) {
+      const statusRes = await fetch(`${BACKEND}/api/zoho/call-status?phone=${encodeURIComponent(lastPhone)}`);
+      const status = await statusRes.json();
+      if (status.active) {
+        await tryLookup(lastPhone);
         setLoading(false);
-      } catch (e) {
-        log.error('run error', e);
-        setLoading(false);
+        return;
       }
-    };
+    }
+
+    setLoading(false);
+  } catch (e) {
+    log.error('run error', e);
+    setLoading(false);
+  }
+};
 
     run();
   }, []);

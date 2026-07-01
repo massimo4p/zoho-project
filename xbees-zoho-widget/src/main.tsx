@@ -38,20 +38,6 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
   }
 });
 
-client.onCallStarted((payload: any) => {
-  log.info('onCallStarted', payload);
-  const phone = payload?.phone ?? payload?.phoneNumber ?? payload?.number;
-  if (phone) {
-    log.debug('salvo phone da onCallStarted', { phone });
-    client.saveToStorage('lastCallPhone', phone);
-  }
-});
-
-client.onCallEnded((payload: any) => {
-  log.info('onCallEnded', payload);
-  client.deleteFromStorage('lastCallPhone');
-});
-
 Client.initialize(async () => {
   log.info('UI mode init');
   const { startUI } = await import('./startUI');
