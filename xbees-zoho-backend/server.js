@@ -25,10 +25,13 @@ app.get('/api/zoho/test', async (req, res) => {
 });
 
 // --- PocketBase: tracciamento chiamate attive ---
+// Ogni record e' identificato dal call_id (data.id del webhook),
+// cosi' possiamo aprire con call:live:progress e chiudere con
+// call:live:completed anche se quest'ultimo non porta il numero.
 
-async function upsertActiveCall(phone, active, callId) {
+async function upsertActiveCallById(callId, active, phone) {
   try {
-    const filter = encodeURIComponent(`phone='${phone}'`);
+    const filter = encodeURIComponent(`call_id='${callId}'`);
     const searchRes = await fetch(
       `${PB_URL}/api/collections/active_calls/records?filter=${filter}`
     );
@@ -36,12 +39,15 @@ async function upsertActiveCall(phone, active, callId) {
     const existing = searchData?.items?.[0];
 
     if (existing) {
+      const body = { active };
+      if (phone) body.phone = phone;
       await fetch(`${PB_URL}/api/collections/active_calls/records/${existing.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active, call_id: callId }),
+        body: JSON.stringify(body),
       });
-    } else {
+    } else if (phone) {
+      // Creiamo il record solo se abbiamo almeno il phone
       await fetch(`${PB_URL}/api/collections/active_calls/records`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,6 +67,25 @@ app.get('/api/debug/last-webhook', (req, res) => {
   res.json(lastWebhookBody);
 });
 
+function extractPhone(type, data) {
+  if (type === 'call:start' || type === 'call:update' || type === 'call:end') {
+    return data?.caller?.phone ?? null;
+  }
+  if (type === 'call:live:progress') {
+    return data?.flows?.[0]?.caller?.phone ?? data?.flows?.[0]?.remotePhone ?? null;
+  }
+  return null;
+}
+
+function extractCallId(type, data) {
+  // data.id e' comune a call:live:progress e call:live:completed
+  if (data?.id) return data.id;
+  if (type === 'call:start' || type === 'call:update' || type === 'call:end') {
+    return data?.caller?.sipCallId ?? null;
+  }
+  return null;
+}
+
 app.post('/api/webhook/call', async (req, res) => {
   const secret = process.env.WILDIX_WEBHOOK_SECRET;
   const signature = req.headers['x-signature'];
@@ -79,23 +104,22 @@ app.post('/api/webhook/call', async (req, res) => {
   const { type, data } = req.body;
   lastWebhookBody = req.body;
 
-  console.log(`[${new Date().toISOString()}] [webhook] type=${type} phone=${data?.caller?.phone} sipCallId=${data?.caller?.sipCallId} status=${data?.status}`);
+  const phone = extractPhone(type, data);
+  const callId = extractCallId(type, data);
 
-  if (type === 'call:start' || type === 'call:update') {
-    const phone = data?.caller?.phone;
-    const callId = data?.caller?.sipCallId;
-    if (phone) {
-      console.log(`[${new Date().toISOString()}] [webhook] chiamata attiva: ${phone}`);
-      await upsertActiveCall(phone, true, callId);
-    }
+  console.log(`[${new Date().toISOString()}] [webhook] type=${type} phone=${phone} callId=${callId}`);
+
+  const isActiveEvent = type === 'call:start' || type === 'call:update' || type === 'call:live:progress';
+  const isEndedEvent = type === 'call:end' || type === 'call:live:completed';
+
+  if (isActiveEvent && callId) {
+    console.log(`[${new Date().toISOString()}] [webhook] chiamata attiva callId=${callId} phone=${phone}`);
+    await upsertActiveCallById(callId, true, phone);
   }
 
-  if (type === 'call:end') {
-    const phone = data?.caller?.phone;
-    if (phone) {
-      console.log(`[${new Date().toISOString()}] [webhook] chiamata terminata: ${phone}`);
-      await upsertActiveCall(phone, false, null);
-    }
+  if (isEndedEvent && callId) {
+    console.log(`[${new Date().toISOString()}] [webhook] chiamata terminata callId=${callId}`);
+    await upsertActiveCallById(callId, false, phone);
   }
 
   res.json({ ok: true });
@@ -104,13 +128,13 @@ app.post('/api/webhook/call', async (req, res) => {
 app.get('/api/zoho/call-status', async (req, res) => {
   try {
     const { phone } = req.query;
-    const filter = encodeURIComponent(`phone='${phone}'`);
+    const filter = encodeURIComponent(`phone='${phone}' && active=true`);
     const r = await fetch(
       `${PB_URL}/api/collections/active_calls/records?filter=${filter}`
     );
     const data = await r.json();
     const record = data?.items?.[0];
-    res.json({ active: record?.active ?? false });
+    res.json({ active: !!record });
   } catch (e) {
     res.json({ active: false });
   }
