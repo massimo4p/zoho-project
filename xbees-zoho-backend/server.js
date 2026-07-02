@@ -24,10 +24,44 @@ app.get('/api/zoho/test', async (req, res) => {
   }
 });
 
-// --- PocketBase: tracciamento chiamate attive ---
-// Ogni record e' identificato dal call_id (data.id del webhook),
-// cosi' possiamo aprire con call:live:progress e chiudere con
-// call:live:completed anche se quest'ultimo non porta il numero.
+// --- SSE: client widget connessi ---
+
+let sseClients = [];
+
+function broadcastActivePhone(phone) {
+  const payload = `data: ${JSON.stringify({ phone: phone ?? null })}\n\n`;
+  sseClients.forEach((client) => {
+    try { client.write(payload); } catch (e) { /* ignore */ }
+  });
+}
+
+app.get('/api/zoho/events', (req, res) => {
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+  res.flushHeaders();
+
+  // invia subito lo stato corrente
+  getActivePhone().then((phone) => {
+    res.write(`data: ${JSON.stringify({ phone })}\n\n`);
+  });
+
+  sseClients.push(res);
+
+  // keep-alive ping ogni 25s per non far cadere la connessione
+  const ping = setInterval(() => {
+    try { res.write(': ping\n\n'); } catch (e) { /* ignore */ }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(ping);
+    sseClients = sseClients.filter((c) => c !== res);
+  });
+});
+
+// --- PocketBase: tracciamento chiamate attive (per call_id) ---
 
 async function upsertActiveCallById(callId, active, phone) {
   try {
@@ -47,7 +81,6 @@ async function upsertActiveCallById(callId, active, phone) {
         body: JSON.stringify(body),
       });
     } else if (phone) {
-      // Creiamo il record solo se abbiamo almeno il phone
       await fetch(`${PB_URL}/api/collections/active_calls/records`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -56,6 +89,18 @@ async function upsertActiveCallById(callId, active, phone) {
     }
   } catch (e) {
     console.error('[pocketbase] errore:', e.message);
+  }
+}
+
+async function getActivePhone() {
+  try {
+    const r = await fetch(
+      `${PB_URL}/api/collections/active_calls/records?filter=(active=true)&sort=-updated&perPage=1`
+    );
+    const data = await r.json();
+    return data?.items?.[0]?.phone ?? null;
+  } catch (e) {
+    return null;
   }
 }
 
@@ -78,7 +123,6 @@ function extractPhone(type, data) {
 }
 
 function extractCallId(type, data) {
-  // data.id e' comune a call:live:progress e call:live:completed
   if (data?.id) return data.id;
   if (type === 'call:start' || type === 'call:update' || type === 'call:end') {
     return data?.caller?.sipCallId ?? null;
@@ -113,44 +157,26 @@ app.post('/api/webhook/call', async (req, res) => {
   const isEndedEvent = type === 'call:end' || type === 'call:live:completed';
 
   if (isActiveEvent && callId) {
-    console.log(`[${new Date().toISOString()}] [webhook] chiamata attiva callId=${callId} phone=${phone}`);
     await upsertActiveCallById(callId, true, phone);
   }
 
   if (isEndedEvent && callId) {
-    console.log(`[${new Date().toISOString()}] [webhook] chiamata terminata callId=${callId}`);
     await upsertActiveCallById(callId, false, phone);
+  }
+
+  // Dopo ogni aggiornamento, notifica i widget con lo stato corrente
+  if (callId) {
+    const activePhone = await getActivePhone();
+    console.log(`[${new Date().toISOString()}] [sse] broadcast phone=${activePhone}`);
+    broadcastActivePhone(activePhone);
   }
 
   res.json({ ok: true });
 });
 
-app.get('/api/zoho/call-status', async (req, res) => {
-  try {
-    const { phone } = req.query;
-    const filter = encodeURIComponent(`phone='${phone}' && active=true`);
-    const r = await fetch(
-      `${PB_URL}/api/collections/active_calls/records?filter=${filter}`
-    );
-    const data = await r.json();
-    const record = data?.items?.[0];
-    res.json({ active: !!record });
-  } catch (e) {
-    res.json({ active: false });
-  }
-});
-
 app.get('/api/zoho/active-call', async (req, res) => {
-  try {
-    const r = await fetch(
-      `${PB_URL}/api/collections/active_calls/records?filter=(active=true)&sort=-updated&perPage=1`
-    );
-    const data = await r.json();
-    const record = data?.items?.[0];
-    res.json({ phone: record?.phone ?? null });
-  } catch (e) {
-    res.json({ phone: null });
-  }
+  const phone = await getActivePhone();
+  res.json({ phone });
 });
 
 // --- Route Zoho esistenti ---
