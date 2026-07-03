@@ -6,6 +6,8 @@ const BACKEND = (import.meta as any).env?.VITE_BACKEND_URL ?? '';
 const VIEW = new URLSearchParams(window.location.search).get('v'); // 'ui' | 'f' | 'no-ui'
 const IS_PREVIEW = VIEW === 'ui';
 
+const DESK_BASE = 'https://desk.zoho.eu/agent/4personality';
+
 interface Contact {
   id?: string;
   module?: string;
@@ -34,15 +36,15 @@ interface Ticket {
 
 type Tab = 'summary' | 'calls' | 'desk';
 
+const MAX_ITEMS = 10;
+
 const s: Record<string, React.CSSProperties> = {
   wrap:       { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' },
   header:     { padding: '12px 14px 0', borderBottom: '1px solid #eee' },
-  headerSlim: { padding: '8px 14px 0', borderBottom: '1px solid #eee' },
   avatar:     { width: 38, height: 38, borderRadius: '50%', background: '#534AB7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 },
   name:       { fontWeight: 600, fontSize: 14 },
   sub:        { fontSize: 11, color: '#888', marginTop: 2 },
   tabs:       { display: 'flex', borderBottom: '1px solid #eee', marginTop: 10 },
-  tabsSlim:   { display: 'flex', borderBottom: '1px solid #eee' },
   tab:        { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid transparent', color: '#888', marginBottom: -1 },
   tabActive:  { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid #534AB7', color: '#534AB7', fontWeight: 500, marginBottom: -1 },
   body:       { padding: '12px 14px', flex: 1, overflowY: 'auto' as const },
@@ -65,6 +67,13 @@ const s: Record<string, React.CSSProperties> = {
   input:      { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const },
   textarea:   { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const, resize: 'vertical' as const, minHeight: 80 },
   success:    { color: '#1a9e6f', fontSize: 12, padding: '8px 0' },
+  seeAll:     { display: 'block', textAlign: 'center' as const, padding: '8px 0', fontSize: 12, color: '#534AB7', textDecoration: 'none', cursor: 'pointer' },
+  // Preview
+  pvWrap:     { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', height: '100vh', display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: '#fff', boxSizing: 'border-box' as const },
+  pvTile:     { flex: 1, border: '1px solid #eee', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none', color: 'inherit', transition: 'background 0.15s' },
+  pvNum:      { fontSize: 28, fontWeight: 700, color: '#534AB7', lineHeight: 1 },
+  pvLbl:      { fontSize: 12, color: '#888', marginTop: 6 },
+  pvArrow:    { fontSize: 11, color: '#bbb', marginTop: 4 },
 };
 
 const statusColor: Record<string, string> = {
@@ -73,6 +82,8 @@ const statusColor: Record<string, string> = {
   'On Hold': '#e08a00', 'In attesa': '#e08a00',
   'In Progress': '#534AB7',
 };
+
+const isOpen = (status: string) => status !== 'Closed' && status !== 'Chiuso';
 
 const formatDate = (iso: string) => {
   try { return new Date(iso).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }); }
@@ -88,6 +99,7 @@ export default function App() {
   const [contact, setContact] = useState<Contact | null>(null);
   const [calls, setCalls] = useState<Call[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [deskAccountId, setDeskAccountId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('summary');
   const [loading, setLoading] = useState(true);
   const [showTicketForm, setShowTicketForm] = useState(false);
@@ -106,6 +118,7 @@ export default function App() {
       setContact(null);
       setCalls([]);
       setTickets([]);
+      setDeskAccountId(null);
       setShowTicketForm(false);
       setTicketDone(false);
     };
@@ -125,7 +138,9 @@ export default function App() {
         fetch(`${BACKEND}/api/zoho/desk/${mod}/${data.id}`),
       ]);
       setCalls(await callsRes.json());
-      setTickets(await deskRes.json());
+      const deskData = await deskRes.json();
+      setTickets(deskData.tickets ?? []);
+      setDeskAccountId(deskData.deskAccountId ?? null);
     };
 
     const applyPhone = async (phone: string | null) => {
@@ -147,9 +162,7 @@ export default function App() {
         log.error('sse parse error', e);
       }
     };
-    es.onerror = (e) => {
-      log.error('sse error', e);
-    };
+    es.onerror = (e) => { log.error('sse error', e); };
 
     return () => { es.close(); };
   }, []);
@@ -182,27 +195,51 @@ export default function App() {
     }
   };
 
+  const openTickets = tickets.filter(t => isOpen(t.status)).length;
+  const deskAccountUrl = deskAccountId
+    ? `${DESK_BASE}/accounts/details/${deskAccountId}`
+    : `${DESK_BASE}/tickets`;
+
+  // ---------- VISTA ANTEPRIMA (v=ui) ----------
+  if (IS_PREVIEW) {
+    if (loading) return <div style={{ ...s.pvWrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
+    if (!contact) return <div style={{ ...s.pvWrap, alignItems: 'center', justifyContent: 'center' }}><div style={s.empty}>Nessun contatto Zoho</div></div>;
+
+    return (
+      <div style={s.pvWrap}>
+        <a style={s.pvTile} href={contact.url} target="_blank" rel="noreferrer">
+          <div style={s.pvNum}>{calls.length}</div>
+          <div style={s.pvLbl}>Chiamate</div>
+          <div style={s.pvArrow}>Apri in CRM ↗</div>
+        </a>
+        <a style={s.pvTile} href={deskAccountUrl} target="_blank" rel="noreferrer">
+          <div style={{ ...s.pvNum, color: openTickets > 0 ? '#e08a00' : '#1a9e6f' }}>{openTickets}</div>
+          <div style={s.pvLbl}>Ticket aperti</div>
+          <div style={s.pvArrow}>Apri in Desk ↗</div>
+        </a>
+      </div>
+    );
+  }
+
+  // ---------- VISTA ESTESA (v=f) ----------
   if (loading) return <div style={{ ...s.wrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
   if (!contact) return <div style={s.wrap}><div style={s.empty}>Nessun contatto Zoho trovato</div></div>;
 
   const initials = contact.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
-  const openTickets = tickets.filter(t => t.status !== 'Closed' && t.status !== 'Chiuso').length;
 
   return (
     <div style={s.wrap}>
-      <div style={IS_PREVIEW ? s.headerSlim : s.header}>
-        {!IS_PREVIEW && (
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 10 }}>
-            <div style={s.avatar}>{initials}</div>
-            <div style={{ flex: 1 }}>
-              <div style={s.name}>
-                <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#1a1a1a', textDecoration: 'none' }}>{contact.name}</a>
-              </div>
-              <div style={s.sub}>{contact.organization} · {contact.phone}</div>
+      <div style={s.header}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 10 }}>
+          <div style={s.avatar}>{initials}</div>
+          <div style={{ flex: 1 }}>
+            <div style={s.name}>
+              <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#1a1a1a', textDecoration: 'none' }}>{contact.name}</a>
             </div>
+            <div style={s.sub}>{contact.organization} · {contact.phone}</div>
           </div>
-        )}
-        <div style={IS_PREVIEW ? s.tabsSlim : s.tabs}>
+        </div>
+        <div style={s.tabs}>
           {(['summary', 'calls', 'desk'] as Tab[]).map(t => (
             <div key={t} style={tab === t ? s.tabActive : s.tab} onClick={() => setTab(t)}>
               {t === 'summary' ? 'Riepilogo' : t === 'calls' ? `Chiamate (${calls.length})` : `Desk (${tickets.length})`}
@@ -273,38 +310,44 @@ export default function App() {
         {tab === 'calls' && (
           calls.length === 0
             ? <div style={s.empty}>Nessuna chiamata trovata</div>
-            : calls.map(c => (
-              <div key={c.id} style={s.card}>
-                <div style={s.cardTitle}>{c.subject}</div>
-                <div style={s.cardMeta}>
-                  {formatDate(c.startTime)}
-                  {formatDuration(c.duration) && ` · ${c.duration}`}
-                </div>
-                {c.note && <div style={{ ...s.cardMeta, marginTop: 6 }}>{c.note}</div>}
-              </div>
-            ))
+            : <>
+                {calls.slice(0, MAX_ITEMS).map(c => (
+                  <div key={c.id} style={s.card}>
+                    <div style={s.cardTitle}>{c.subject}</div>
+                    <div style={s.cardMeta}>
+                      {formatDate(c.startTime)}
+                      {formatDuration(c.duration) && ` · ${c.duration}`}
+                    </div>
+                    {c.note && <div style={{ ...s.cardMeta, marginTop: 6 }}>{c.note}</div>}
+                  </div>
+                ))}
+                <a style={s.seeAll} href={contact.url} target="_blank" rel="noreferrer">Vedi tutto in CRM ↗</a>
+              </>
         )}
 
         {tab === 'desk' && (
           tickets.length === 0
             ? <div style={s.empty}>Nessun ticket trovato</div>
-            : tickets.map(t => (
-              <a key={t.id}
-                href={`https://desk.zoho.eu/agent/4personality/all/tickets/detail/${t.id}`}
-                target="_blank"
-                rel="noreferrer"
-                style={s.cardLink}
-              >
-                <div style={s.cardTitle}>{t.subject}</div>
-                <div style={{ display: 'flex', gap: 6, marginTop: 4, alignItems: 'center' }}>
-                  <div style={{ ...s.badge, background: `${statusColor[t.status] ?? '#aaa'}22`, color: statusColor[t.status] ?? '#aaa' }}>
-                    {t.status}
-                  </div>
-                  {t.channel && <div style={{ ...s.badge, background: '#f0f0f0', color: '#888' }}>{t.channel}</div>}
-                </div>
-                <div style={s.cardMeta}>{formatDate(t.createdTime)}</div>
-              </a>
-            ))
+            : <>
+                {tickets.slice(0, MAX_ITEMS).map(t => (
+                  <a key={t.id}
+                    href={`${DESK_BASE}/all/tickets/detail/${t.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={s.cardLink}
+                  >
+                    <div style={s.cardTitle}>{t.subject}</div>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 4, alignItems: 'center' }}>
+                      <div style={{ ...s.badge, background: `${statusColor[t.status] ?? '#aaa'}22`, color: statusColor[t.status] ?? '#aaa' }}>
+                        {t.status}
+                      </div>
+                      {t.channel && <div style={{ ...s.badge, background: '#f0f0f0', color: '#888' }}>{t.channel}</div>}
+                    </div>
+                    <div style={s.cardMeta}>{formatDate(t.createdTime)}</div>
+                  </a>
+                ))}
+                <a style={s.seeAll} href={deskAccountUrl} target="_blank" rel="noreferrer">Vedi tutti i ticket in Desk ↗</a>
+              </>
         )}
       </div>
     </div>

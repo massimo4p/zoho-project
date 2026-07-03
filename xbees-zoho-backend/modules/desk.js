@@ -6,12 +6,12 @@ const ZOHO_API = 'https://www.zohoapis.eu/crm/v8';
 const DESK_API = 'https://desk.zoho.eu/api/v1';
 const DESK_DEPT = '119589000000007061';
 
-const fetchTickets = async (module, id, token) => {
+async function fetchSupport(module, id, token) {
   const r = await fetch(`${ZOHO_API}/${module}/${id}/Zoho_Support`, {
     headers: { Authorization: `Zoho-oauthtoken ${token}` }
   });
   const data = await r.json();
-  return (data?.data ?? []).map(t => ({
+  const tickets = (data?.data ?? []).map(t => ({
     id:          t.id,
     subject:     t.subject,
     status:      t.status,
@@ -19,28 +19,39 @@ const fetchTickets = async (module, id, token) => {
     createdTime: t.createdTime,
     channel:     t.channel,
   }));
-};
+  const deskAccountId = data?.ticket_stats?.accountId ?? null;
+  return { tickets, deskAccountId };
+}
 
 router.get('/:module/:id', async (req, res) => {
   try {
     const { module, id } = req.params;
     const token = await getZohoToken();
+
     let tickets = [];
+    let deskAccountId = null;
+
     if (module === 'Accounts') {
       const cr = await fetch(`${ZOHO_API}/Accounts/${id}/Contacts?fields=id`, {
         headers: { Authorization: `Zoho-oauthtoken ${token}` }
       });
       const contacts = await cr.json();
       const results = await Promise.all(
-        (contacts?.data ?? []).map(c => fetchTickets('Contacts', c.id, token))
+        (contacts?.data ?? []).map(c => fetchSupport('Contacts', c.id, token))
       );
-      tickets = results.flat();
+      results.forEach(r => {
+        tickets.push(...r.tickets);
+        if (!deskAccountId && r.deskAccountId) deskAccountId = r.deskAccountId;
+      });
     } else {
-      tickets = await fetchTickets(module, id, token);
+      const r = await fetchSupport(module, id, token);
+      tickets = r.tickets;
+      deskAccountId = r.deskAccountId;
     }
-    res.json(tickets);
+
+    res.json({ tickets, deskAccountId });
   } catch (e) {
-    res.json([]);
+    res.json({ tickets: [], deskAccountId: null });
   }
 });
 
