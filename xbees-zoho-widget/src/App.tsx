@@ -69,7 +69,7 @@ const s: Record<string, React.CSSProperties> = {
   success:    { color: '#1a9e6f', fontSize: 12, padding: '8px 0' },
   seeAll:     { display: 'block', textAlign: 'center' as const, padding: '8px 0', fontSize: 12, color: '#534AB7', textDecoration: 'none', cursor: 'pointer' },
   // Preview
-  pvWrap:     { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', height: '100vh', display: 'flex', flexDirection: 'column', gap: 8, padding: 10, background: '#fff', boxSizing: 'border-box' as const },
+pvWrap:     { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', height: '100vh', display: 'flex', flexDirection: 'row', gap: 8, padding: 10, background: '#fff', boxSizing: 'border-box' as const },
   pvTile:     { flex: 1, border: '1px solid #eee', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration: 'none', color: 'inherit', transition: 'background 0.15s' },
   pvNum:      { fontSize: 28, fontWeight: 700, color: '#534AB7', lineHeight: 1 },
   pvLbl:      { fontSize: 12, color: '#888', marginTop: 6 },
@@ -196,10 +196,9 @@ export default function App() {
   };
 
   const openTickets = tickets.filter(t => isOpen(t.status)).length;
-  const deskAccountUrl = deskAccountId
-    ? `${DESK_BASE}/accounts/details/${deskAccountId}`
-    : `${DESK_BASE}/tickets`;
-
+const deskAccountUrl = deskAccountId
+    ? `${DESK_BASE}/all/accounts/details/${deskAccountId}`
+    : `${DESK_BASE}/all/tickets`;
   // ---------- VISTA ANTEPRIMA (v=ui) ----------
   if (IS_PREVIEW) {
     if (loading) return <div style={{ ...s.pvWrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
