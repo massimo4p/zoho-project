@@ -3,6 +3,8 @@ import Client from '@wildix/xbees-connect';
 import { log } from './logger';
 
 const BACKEND = (import.meta as any).env?.VITE_BACKEND_URL ?? '';
+const VIEW = new URLSearchParams(window.location.search).get('v'); // 'ui' | 'f' | 'no-ui'
+const IS_PREVIEW = VIEW === 'ui';
 
 interface Contact {
   id?: string;
@@ -35,10 +37,12 @@ type Tab = 'summary' | 'calls' | 'desk';
 const s: Record<string, React.CSSProperties> = {
   wrap:       { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' },
   header:     { padding: '12px 14px 0', borderBottom: '1px solid #eee' },
+  headerSlim: { padding: '8px 14px 0', borderBottom: '1px solid #eee' },
   avatar:     { width: 38, height: 38, borderRadius: '50%', background: '#534AB7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 },
   name:       { fontWeight: 600, fontSize: 14 },
   sub:        { fontSize: 11, color: '#888', marginTop: 2 },
   tabs:       { display: 'flex', borderBottom: '1px solid #eee', marginTop: 10 },
+  tabsSlim:   { display: 'flex', borderBottom: '1px solid #eee' },
   tab:        { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid transparent', color: '#888', marginBottom: -1 },
   tabActive:  { padding: '7px 12px', fontSize: 12, cursor: 'pointer', borderBottom: '2px solid #534AB7', color: '#534AB7', fontWeight: 500, marginBottom: -1 },
   body:       { padding: '12px 14px', flex: 1, overflowY: 'auto' as const },
@@ -107,7 +111,6 @@ export default function App() {
     };
 
     const tryLookup = async (phone: string) => {
-      // evita ricariche inutili se e' lo stesso numero gia' mostrato
       if (phone === currentPhone) return;
       currentPhone = phone;
       log.debug('tryLookup', { phone });
@@ -125,7 +128,6 @@ export default function App() {
       setTickets(await deskRes.json());
     };
 
-    // Applica lo stato "chiamata attiva" ricevuto (da SSE o fetch iniziale)
     const applyPhone = async (phone: string | null) => {
       if (phone) {
         try { await tryLookup(phone); } catch (e) { log.error('lookup error', e); }
@@ -135,7 +137,6 @@ export default function App() {
       setLoading(false);
     };
 
-    // 1) Connessione SSE: unica fonte di verita' sullo stato chiamata
     const es = new EventSource(`${BACKEND}/api/zoho/events`);
     es.onmessage = (ev) => {
       try {
@@ -148,7 +149,6 @@ export default function App() {
     };
     es.onerror = (e) => {
       log.error('sse error', e);
-      // EventSource tenta la riconnessione da solo
     };
 
     return () => { es.close(); };
@@ -190,17 +190,19 @@ export default function App() {
 
   return (
     <div style={s.wrap}>
-      <div style={s.header}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 10 }}>
-          <div style={s.avatar}>{initials}</div>
-          <div style={{ flex: 1 }}>
-            <div style={s.name}>
-              <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#1a1a1a', textDecoration: 'none' }}>{contact.name}</a>
+      <div style={IS_PREVIEW ? s.headerSlim : s.header}>
+        {!IS_PREVIEW && (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 10 }}>
+            <div style={s.avatar}>{initials}</div>
+            <div style={{ flex: 1 }}>
+              <div style={s.name}>
+                <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#1a1a1a', textDecoration: 'none' }}>{contact.name}</a>
+              </div>
+              <div style={s.sub}>{contact.organization} · {contact.phone}</div>
             </div>
-            <div style={s.sub}>{contact.organization} · {contact.phone}</div>
           </div>
-        </div>
-        <div style={s.tabs}>
+        )}
+        <div style={IS_PREVIEW ? s.tabsSlim : s.tabs}>
           {(['summary', 'calls', 'desk'] as Tab[]).map(t => (
             <div key={t} style={tab === t ? s.tabActive : s.tab} onClick={() => setTab(t)}>
               {t === 'summary' ? 'Riepilogo' : t === 'calls' ? `Chiamate (${calls.length})` : `Desk (${tickets.length})`}
