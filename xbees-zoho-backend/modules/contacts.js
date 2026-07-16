@@ -330,4 +330,18 @@ router.get('/record/:module/:id', async (req, res) => {
   }
 });
 
+// --- Debug: campi disponibili di un Lead ---
+router.get('/debug/lead/:id', async (req, res) => {
+  try {
+    const token = await getZohoToken();
+    const headers = { Authorization: `Zoho-oauthtoken ${token}` };
+    const r = await fetch(`${ZOHO_API}/Leads/${req.params.id}`, { headers });
+    if (r.status === 204) return res.json(null);
+    const data = await r.json();
+    res.json(data?.data?.[0] ?? null);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
