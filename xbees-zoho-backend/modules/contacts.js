@@ -287,4 +287,47 @@ router.get('/accounts/search', async (req, res) => {
   }
 });
 
+// --- Recupera un record per ID (usato dopo la creazione) ---
+router.get('/record/:module/:id', async (req, res) => {
+  try {
+    const { module, id } = req.params;
+    const token = await getZohoToken();
+    const headers = { Authorization: `Zoho-oauthtoken ${token}` };
+
+    const r = await fetch(`${ZOHO_API}/${module}/${id}`, { headers });
+    if (r.status === 204) return res.json(null);
+    const data = await r.json();
+    const rec = data?.data?.[0];
+    if (!rec) return res.json(null);
+
+    if (module === 'Contacts') {
+      return res.json({
+        id:           rec.id,
+        module:       'Contacts',
+        name:         `${rec.First_Name ?? ''} ${rec.Last_Name ?? ''}`.trim(),
+        organization: rec.Account_Name?.name ?? '',
+        accountId:    rec.Account_Name?.id ?? null,
+        phone:        rec.Phone ?? rec.Mobile ?? '',
+        url:          contactUrl(rec.id),
+      });
+    }
+
+    if (module === 'Leads') {
+      return res.json({
+        id:           rec.id,
+        module:       'Leads',
+        name:         `${rec.First_Name ?? ''} ${rec.Last_Name ?? ''}`.trim(),
+        organization: rec.Company ?? '',
+        accountId:    null,
+        phone:        rec.Phone ?? rec.Mobile ?? '',
+        url:          `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Leads/${rec.id}`,
+      });
+    }
+
+    res.json(null);
+  } catch (e) {
+    res.json(null);
+  }
+});
+
 module.exports = router;
