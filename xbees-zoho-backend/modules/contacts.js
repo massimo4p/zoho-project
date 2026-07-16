@@ -127,21 +127,31 @@ router.get('/debug/company/:accountId', async (req, res) => {
     const headers = { Authorization: `Zoho-oauthtoken ${token}` };
     const { accountId } = req.params;
 
-    const [accRes, contRes] = await Promise.all([
-      fetch(`${ZOHO_API}/Accounts/${accountId}`, { headers }),
-      fetch(`${ZOHO_API}/Accounts/${accountId}/Contacts`, { headers }),
+    const safeJson = async (url) => {
+      const r = await fetch(url, { headers });
+      if (r.status === 204) return { _status: 204, data: [] };
+      const text = await r.text();
+      if (!text) return { _status: r.status, data: [] };
+      try {
+        return { _status: r.status, ...JSON.parse(text) };
+      } catch (e) {
+        return { _status: r.status, _raw: text.substring(0, 300) };
+      }
+    };
+
+    const [account, contacts] = await Promise.all([
+      safeJson(`${ZOHO_API}/Accounts/${accountId}`),
+      safeJson(`${ZOHO_API}/Accounts/${accountId}/Contacts`),
     ]);
 
-    const account = await accRes.json();
-    const contacts = await contRes.json();
-
     res.json({
+      accountStatus: account._status,
       account: account?.data?.[0] ?? null,
+      contactsStatus: contacts._status,
       contacts: contacts?.data ?? [],
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
-
 module.exports = router;
