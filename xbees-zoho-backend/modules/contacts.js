@@ -344,4 +344,83 @@ router.get('/debug/lead/:id', async (req, res) => {
   }
 });
 
+// --- Dati completi di un Lead ---
+router.get('/lead/:id', async (req, res) => {
+  try {
+    const token = await getZohoToken();
+    const headers = { Authorization: `Zoho-oauthtoken ${token}` };
+    const r = await fetch(`${ZOHO_API}/Leads/${req.params.id}`, { headers });
+    if (r.status === 204) return res.json(null);
+    const data = await r.json();
+    const l = data?.data?.[0];
+    if (!l) return res.json(null);
+
+    res.json({
+      id:          l.id,
+      name:        l.Full_Name ?? `${l.First_Name ?? ''} ${l.Last_Name ?? ''}`.trim(),
+      company:     l.Company ?? '',
+      phone:       l.Phone ?? l.Mobile ?? '',
+      email:       l.Email ?? null,
+      website:     l.Website ?? null,
+      status:      l.Lead_Status ?? null,
+      source:      l.Lead_Source ?? null,
+      owner:       l.Owner?.name ?? null,
+      description: l.Description ?? '',
+      vat:         l.P_IVA ?? null,
+      cf:          l.C_F ?? null,
+      street:      l.Street ?? null,
+      city:        l.City ?? null,
+      zip:         l.Zip_Code ?? null,
+      state:       l.State ?? null,
+      converted:   l.Converted__s ?? false,
+      url:         `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Leads/${l.id}`,
+    });
+  } catch (e) {
+    res.json(null);
+  }
+});
+
+// --- Valori possibili di Lead_Status ---
+router.get('/lead-statuses', async (req, res) => {
+  try {
+    const token = await getZohoToken();
+    const r = await fetch(`${ZOHO_API}/settings/fields?module=Leads`, {
+      headers: { Authorization: `Zoho-oauthtoken ${token}` }
+    });
+    const d = await r.json();
+    const f = d.fields?.find(x => x.api_name === 'Lead_Status');
+    const values = (f?.pick_list_values ?? [])
+      .map(p => p.display_value)
+      .filter(v => v && v !== '-None-');
+    res.json(values);
+  } catch (e) {
+    res.json([]);
+  }
+});
+
+// --- Aggiorna un Lead (stato e/o descrizione) ---
+router.patch('/lead/:id', async (req, res) => {
+  try {
+    const { status, description } = req.body;
+    const token = await getZohoToken();
+    const payload = { data: [{ id: req.params.id }] };
+    if (status !== undefined) payload.data[0].Lead_Status = status;
+    if (description !== undefined) payload.data[0].Description = description;
+
+    const r = await fetch(`${ZOHO_API}/Leads`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Zoho-oauthtoken ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    const ok = data?.data?.[0]?.code === 'SUCCESS';
+    res.json({ ok, raw: ok ? undefined : data });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 module.exports = router;
