@@ -47,15 +47,11 @@ export default function NewRecordView({ phone, onCreate }: Props) {
 
   return (
     <div style={s.wrap}>
-      <div style={s.head}>
-        <div>
-          <div style={s.name}>Numero sconosciuto</div>
-          <div style={s.sub}>{phone}</div>
-        </div>
-      </div>
-
       <div style={s.formWrap}>
-        <div style={{ ...s.secTitle, marginBottom: 10 }}><span>Aggiungi in rubrica</span></div>
+        <div style={s.name}>Numero sconosciuto</div>
+        <div style={{ ...s.sub, marginBottom: 16 }}>{phone}</div>
+
+        <div style={s.secTitle}><span>Aggiungi in rubrica</span></div>
 
         <label style={s.formLbl}>Tipo</label>
         <select
