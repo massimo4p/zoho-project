@@ -20,37 +20,23 @@ interface Contact {
 }
 
 interface Company {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  website: string | null;
-  vat: string | null;
-  stato: string | null;
-  pagamenti: string | null;
-  blocco: boolean;
-  owner: string | null;
-  scadenza: string | null;
-  url: string;
+  id: string; name: string; email: string | null; phone: string | null;
+  website: string | null; vat: string | null; stato: string | null;
+  pagamenti: string | null; blocco: boolean; owner: string | null;
+  scadenza: string | null; url: string;
 }
 
-interface Call {
-  id: string;
-  subject: string;
-  startTime: string;
-  duration: string;
-  note?: string;
+interface Lead {
+  id: string; name: string; company: string; phone: string;
+  email: string | null; website: string | null; status: string | null;
+  source: string | null; owner: string | null; description: string;
+  vat: string | null; cf: string | null; street: string | null;
+  city: string | null; zip: string | null; state: string | null;
+  converted: boolean; url: string;
 }
 
-interface Ticket {
-  id: string;
-  subject: string;
-  status: string;
-  priority?: string;
-  createdTime: string;
-  channel?: string;
-}
-
+interface Call { id: string; subject: string; startTime: string; duration: string; note?: string; }
+interface Ticket { id: string; subject: string; status: string; priority?: string; createdTime: string; channel?: string; }
 interface AccountOption { id: string; name: string; }
 
 type Tab = 'summary' | 'calls' | 'desk';
@@ -58,7 +44,10 @@ type Tab = 'summary' | 'calls' | 'desk';
 const s: Record<string, React.CSSProperties> = {
   wrap:       { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' },
   header:     { padding: '12px 14px 0', borderBottom: '1px solid #eee' },
+  headerLead: { padding: '12px 14px', borderBottom: '1px solid #eee' },
   avatar:     { width: 38, height: 38, borderRadius: '50%', background: '#534AB7', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 },
+  avatarLead: { width: 38, height: 38, borderRadius: '50%', background: '#FAEEDA', color: '#854F0B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 600, flexShrink: 0 },
+  leadTag:    { background: '#FAEEDA', color: '#854F0B', fontSize: 11, padding: '3px 8px', borderRadius: 6, flexShrink: 0 },
   name:       { fontWeight: 600, fontSize: 14 },
   sub:        { fontSize: 11, color: '#888', marginTop: 2 },
   tabs:       { display: 'flex', borderBottom: '1px solid #eee', marginTop: 10 },
@@ -68,9 +57,10 @@ const s: Record<string, React.CSSProperties> = {
   section:    { marginTop: 16 },
   secTitle:   { fontSize: 11, fontWeight: 600, color: '#999', letterSpacing: 0.5, textTransform: 'uppercase' as const, marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   secLink:    { fontSize: 11, color: '#534AB7', textDecoration: 'none', textTransform: 'none' as const, letterSpacing: 0, fontWeight: 400 },
-  row:        { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f4f4f4' },
-  label:      { color: '#999', fontSize: 12 },
-  val:        { fontSize: 12, textAlign: 'right' as const, maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
+  row:        { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '6px 0', borderBottom: '1px solid #f4f4f4' },
+  label:      { color: '#999', fontSize: 12, flexShrink: 0 },
+  val:        { fontSize: 12, textAlign: 'right' as const, maxWidth: '60%' },
+  valNw:      { fontSize: 12, textAlign: 'right' as const, maxWidth: '60%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const },
   dot:        { display: 'inline-block', width: 7, height: 7, borderRadius: '50%', marginRight: 6 },
   card:       { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8 },
   cardLink:   { border: '1px solid #eee', borderRadius: 8, padding: '10px 12px', marginBottom: 8, cursor: 'pointer', textDecoration: 'none', display: 'block', color: 'inherit' },
@@ -78,8 +68,9 @@ const s: Record<string, React.CSSProperties> = {
   cardMeta:   { fontSize: 11, color: '#aaa', marginTop: 4 },
   badge:      { fontSize: 11, padding: '2px 7px', borderRadius: 20, display: 'inline-block', marginTop: 4 },
   empty:      { color: '#aaa', textAlign: 'center' as const, marginTop: 40, fontSize: 13 },
-  actions:    { display: 'flex', gap: 8, marginTop: 16 },
+  actions:    { display: 'flex', gap: 8, marginTop: 12 },
   btn:        { flex: 1, padding: '8px 0', borderRadius: 6, border: '1px solid #534AB7', background: 'transparent', color: '#534AB7', fontSize: 12, cursor: 'pointer' },
+  btnGhost:   { flex: 1, padding: '8px 0', borderRadius: 6, border: '1px solid #ddd', background: 'transparent', color: '#888', fontSize: 12, cursor: 'pointer', textDecoration: 'none', textAlign: 'center' as const },
   btnPrimary: { flex: 1, padding: '8px 0', borderRadius: 6, border: '1px solid #534AB7', background: '#534AB7', color: '#fff', fontSize: 12, cursor: 'pointer' },
   stat:       { display: 'flex', gap: 8 },
   statBox:    { flex: 1, border: '1px solid #eee', borderRadius: 8, padding: '8px 10px', textAlign: 'center' as const },
@@ -87,7 +78,7 @@ const s: Record<string, React.CSSProperties> = {
   statLbl:    { fontSize: 11, color: '#aaa', marginTop: 2 },
   input:      { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const },
   select:     { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const, background: '#fff' },
-  textarea:   { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const, resize: 'vertical' as const, minHeight: 80 },
+  textarea:   { width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #ddd', fontSize: 12, marginBottom: 8, boxSizing: 'border-box' as const, resize: 'vertical' as const, minHeight: 70 },
   success:    { color: '#1a9e6f', fontSize: 12, padding: '8px 0' },
   seeAll:     { display: 'block', textAlign: 'center' as const, padding: '8px 0', fontSize: 12, color: '#534AB7', textDecoration: 'none', cursor: 'pointer' },
   pvWrap:     { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', height: '100vh', display: 'flex', flexDirection: 'row', gap: 8, padding: 10, background: '#fff', boxSizing: 'border-box' as const },
@@ -120,12 +111,19 @@ const formatDuration = (d: string) => (!d || d === '00:00') ? null : d;
 export default function App() {
   const [contact, setContact] = useState<Contact | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
+  const [lead, setLead] = useState<Lead | null>(null);
   const [calls, setCalls] = useState<Call[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [deskAccountId, setDeskAccountId] = useState<string | null>(null);
   const [activePhone, setActivePhone] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('summary');
   const [loading, setLoading] = useState(true);
+
+  const [leadStatuses, setLeadStatuses] = useState<string[]>([]);
+  const [leadStatus, setLeadStatus] = useState('');
+  const [leadDesc, setLeadDesc] = useState('');
+  const [leadSaving, setLeadSaving] = useState(false);
+  const [leadSaved, setLeadSaved] = useState(false);
 
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [ticketSubject, setTicketSubject] = useState('');
@@ -148,6 +146,13 @@ export default function App() {
   const recordRef = useRef<((m: string, id: string) => Promise<boolean>) | null>(null);
 
   useEffect(() => {
+    fetch(`${BACKEND}/api/zoho/contacts/lead-statuses`)
+      .then(r => r.json())
+      .then(setLeadStatuses)
+      .catch(() => setLeadStatuses([]));
+  }, []);
+
+  useEffect(() => {
     Client.getInstance().ready();
 
     let currentPhone: string | null = null;
@@ -160,13 +165,34 @@ export default function App() {
 
     const clearAll = () => {
       currentPhone = null;
-      setContact(null); setCompany(null); setCalls([]); setTickets([]);
+      setContact(null); setCompany(null); setLead(null); setCalls([]); setTickets([]);
       setDeskAccountId(null); setShowTicketForm(false); setTicketDone(false);
       setCreatedUrl(null); setCreateFailed(false); setCreating(false);
+      setLeadStatus(''); setLeadDesc(''); setLeadSaved(false);
       resetForm();
     };
 
+    const loadLead = async (id: string) => {
+      const r = await fetch(`${BACKEND}/api/zoho/contacts/lead/${id}`);
+      const l = await r.json();
+      log.debug('lead', l);
+      if (!l) return;
+      setLead(l);
+      setLeadStatus(l.status ?? '');
+      setLeadDesc(l.description ?? '');
+    };
+
     const loadExtras = async (module: string, id: string, accountId?: string | null) => {
+      if (module === 'Leads') {
+        setCompany(null); setTickets([]); setDeskAccountId(null);
+        const [callsRes] = await Promise.all([
+          fetch(`${BACKEND}/api/zoho/activities/${module}/${id}`),
+          loadLead(id),
+        ]);
+        setCalls(await callsRes.json());
+        return;
+      }
+      setLead(null);
       const [callsRes, deskRes] = await Promise.all([
         fetch(`${BACKEND}/api/zoho/activities/${module}/${id}`),
         fetch(`${BACKEND}/api/zoho/desk/${module}/${id}`),
@@ -193,7 +219,7 @@ export default function App() {
       const data = await r.json();
       log.debug('contact', data);
       if (!data) {
-        setContact(null); setCompany(null); setCalls([]); setTickets([]);
+        setContact(null); setCompany(null); setLead(null); setCalls([]); setTickets([]);
         return;
       }
       setContact(data);
@@ -246,6 +272,23 @@ export default function App() {
     return () => clearTimeout(t);
   }, [newCompany, newType, newAccountId]);
 
+  const saveLead = async () => {
+    if (!lead) return;
+    setLeadSaving(true);
+    setLeadSaved(false);
+    try {
+      const r = await fetch(`${BACKEND}/api/zoho/contacts/lead/${lead.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: leadStatus, description: leadDesc }),
+      });
+      const data = await r.json();
+      if (data.ok) setLeadSaved(true);
+      else log.error('saveLead failed', data);
+    } catch (e) { log.error('saveLead error', e); }
+    finally { setLeadSaving(false); }
+  };
+
   const createTicket = async () => {
     if (!ticketSubject.trim() || !contact) return;
     setTicketLoading(true);
@@ -283,11 +326,9 @@ export default function App() {
       const data = await r.json();
       if (!data.ok) { setCreating(false); setCreateFailed(true); log.error('create failed', data); return; }
       setCreatedUrl(data.url ?? null);
-
       const ok = await recordRef.current?.(data.type, data.id);
       setCreating(false);
       if (!ok) setCreateFailed(true);
-
       setNewFirst(''); setNewLast(''); setNewCompany('');
       setNewAccountId(null); setNewRole(''); setNewEmail('');
     } catch (e) {
@@ -357,19 +398,15 @@ export default function App() {
         </div>
         <div style={s.body}>
           <div style={{ ...s.secTitle, marginBottom: 10 }}><span>Aggiungi in rubrica</span></div>
-
           <label style={s.formLbl}>Tipo</label>
           <select style={s.select} value={newType} onChange={e => { setNewType(e.target.value as any); setNewAccountId(null); }}>
             <option value="Leads">Lead</option>
             <option value="Contacts">Contatto</option>
           </select>
-
           <label style={s.formLbl}>Nome</label>
           <input style={s.input} value={newFirst} onChange={e => setNewFirst(e.target.value)} />
-
           <label style={s.formLbl}>Cognome *</label>
           <input style={s.input} value={newLast} onChange={e => setNewLast(e.target.value)} />
-
           <label style={s.formLbl}>Azienda</label>
           <div style={s.acWrap}>
             <input
@@ -381,9 +418,7 @@ export default function App() {
             {newType === 'Contacts' && acOptions.length > 0 && (
               <div style={s.acList}>
                 {acOptions.map(o => (
-                  <div key={o.id} style={s.acItem} onClick={() => { setNewCompany(o.name); setNewAccountId(o.id); setAcOptions([]); }}>
-                    {o.name}
-                  </div>
+                  <div key={o.id} style={s.acItem} onClick={() => { setNewCompany(o.name); setNewAccountId(o.id); setAcOptions([]); }}>{o.name}</div>
                 ))}
               </div>
             )}
@@ -391,19 +426,12 @@ export default function App() {
           {newType === 'Contacts' && newCompany && !newAccountId && (
             <div style={{ fontSize: 11, color: '#e08a00', marginBottom: 8 }}>Seleziona un'azienda dall'elenco</div>
           )}
-
           <label style={s.formLbl}>Ruolo</label>
           <input style={s.input} value={newRole} onChange={e => setNewRole(e.target.value)} />
-
           <label style={s.formLbl}>Email</label>
           <input style={s.input} value={newEmail} onChange={e => setNewEmail(e.target.value)} />
-
           <div style={s.actions}>
-            <button
-              style={s.btnPrimary}
-              onClick={createRecord}
-              disabled={!newLast.trim() || (newType === 'Contacts' && !newAccountId)}
-            >
+            <button style={s.btnPrimary} onClick={createRecord} disabled={!newLast.trim() || (newType === 'Contacts' && !newAccountId)}>
               Aggiungi in rubrica
             </button>
           </div>
@@ -415,6 +443,76 @@ export default function App() {
   if (!contact) return <div style={s.wrap}><div style={s.empty}>Nessun contatto Zoho trovato</div></div>;
 
   const initials = contact.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
+
+  // ---------- VISTA LEAD ----------
+  if (contact.module === 'Leads') {
+    const addr = [lead?.street, [lead?.zip, lead?.city].filter(Boolean).join(' '), lead?.state ? `(${lead.state})` : null]
+      .filter(Boolean).join(', ');
+    return (
+      <div style={s.wrap}>
+        <div style={s.headerLead}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <div style={s.avatarLead}>{initials}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={s.name}>
+                <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#1a1a1a', textDecoration: 'none' }}>{contact.name}</a>
+              </div>
+              <div style={s.sub}>{contact.organization} · {contact.phone}</div>
+            </div>
+            <div style={s.leadTag}>Lead</div>
+          </div>
+        </div>
+
+        <div style={s.body}>
+          <div style={{ ...s.secTitle, marginBottom: 8 }}><span>Stato</span></div>
+          <select style={s.select} value={leadStatus} onChange={e => { setLeadStatus(e.target.value); setLeadSaved(false); }}>
+            <option value="">—</option>
+            {leadStatuses.map(st => <option key={st} value={st}>{st}</option>)}
+          </select>
+
+          {lead && (
+            <div style={s.section}>
+              <div style={s.secTitle}><span>Dettagli</span></div>
+              {lead.source && <div style={s.row}><span style={s.label}>Origine</span><span style={s.valNw}>{lead.source}</span></div>}
+              {lead.owner && <div style={s.row}><span style={s.label}>Referente</span><span style={s.valNw}>{lead.owner}</span></div>}
+              {lead.email && <div style={s.row}><span style={s.label}>Email</span><span style={s.valNw}>{lead.email}</span></div>}
+              {lead.vat && <div style={s.row}><span style={s.label}>P. IVA</span><span style={s.valNw}>{lead.vat}</span></div>}
+              {addr && <div style={s.row}><span style={s.label}>Indirizzo</span><span style={s.val}>{addr}</span></div>}
+            </div>
+          )}
+
+          <div style={s.section}>
+            <div style={s.secTitle}><span>Note</span></div>
+            <textarea
+              style={s.textarea}
+              placeholder="Appunti sulla chiamata..."
+              value={leadDesc}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setLeadDesc(e.target.value); setLeadSaved(false); }}
+            />
+            {leadSaved && <div style={s.success}>✓ Salvato</div>}
+            <div style={s.actions}>
+              <a style={s.btnGhost} href={contact.url} target="_blank" rel="noreferrer">Apri in CRM ↗</a>
+              <button style={s.btnPrimary} onClick={saveLead} disabled={leadSaving}>{leadSaving ? '...' : 'Salva'}</button>
+            </div>
+          </div>
+
+          {calls.length > 0 && (
+            <div style={s.section}>
+              <div style={s.secTitle}><span>Chiamate ({calls.length})</span></div>
+              {calls.slice(0, MAX_ITEMS).map(c => (
+                <div key={c.id} style={s.card}>
+                  <div style={s.cardTitle}>{c.subject}</div>
+                  <div style={s.cardMeta}>{formatDate(c.startTime)}{formatDuration(c.duration) && ` · ${c.duration}`}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- VISTA CLIENTE ----------
   const pagamentiOk = company?.pagamenti === 'SI';
   const statoAttiva = company?.stato === 'Attiva';
 
@@ -443,18 +541,9 @@ export default function App() {
         {tab === 'summary' && (
           <>
             <div style={s.stat}>
-              <div style={s.statBox}>
-                <div style={s.statNum}>{calls.length}</div>
-                <div style={s.statLbl}>Chiamate</div>
-              </div>
-              <div style={s.statBox}>
-                <div style={s.statNum}>{tickets.length}</div>
-                <div style={s.statLbl}>Ticket</div>
-              </div>
-              <div style={s.statBox}>
-                <div style={{ ...s.statNum, color: openTickets > 0 ? '#e08a00' : '#1a9e6f' }}>{openTickets}</div>
-                <div style={s.statLbl}>Aperti</div>
-              </div>
+              <div style={s.statBox}><div style={s.statNum}>{calls.length}</div><div style={s.statLbl}>Chiamate</div></div>
+              <div style={s.statBox}><div style={s.statNum}>{tickets.length}</div><div style={s.statLbl}>Ticket</div></div>
+              <div style={s.statBox}><div style={{ ...s.statNum, color: openTickets > 0 ? '#e08a00' : '#1a9e6f' }}>{openTickets}</div><div style={s.statLbl}>Aperti</div></div>
             </div>
 
             {company && (
@@ -464,36 +553,33 @@ export default function App() {
                   <a style={s.secLink} href={company.url} target="_blank" rel="noreferrer">Apri ↗</a>
                 </div>
                 {company.stato && (
-                  <div style={s.row}>
-                    <span style={s.label}>Stato</span>
-                    <span style={s.val}><span style={{ ...s.dot, background: statoAttiva ? '#1a9e6f' : '#d9534f' }} />{company.stato}</span>
+                  <div style={s.row}><span style={s.label}>Stato</span>
+                    <span style={s.valNw}><span style={{ ...s.dot, background: statoAttiva ? '#1a9e6f' : '#d9534f' }} />{company.stato}</span>
                   </div>
                 )}
                 {company.pagamenti && (
-                  <div style={s.row}>
-                    <span style={s.label}>Pagamenti</span>
-                    <span style={s.val}><span style={{ ...s.dot, background: pagamentiOk ? '#1a9e6f' : '#d9534f' }} />{pagamentiOk ? 'In regola' : company.pagamenti}</span>
+                  <div style={s.row}><span style={s.label}>Pagamenti</span>
+                    <span style={s.valNw}><span style={{ ...s.dot, background: pagamentiOk ? '#1a9e6f' : '#d9534f' }} />{pagamentiOk ? 'In regola' : company.pagamenti}</span>
                   </div>
                 )}
                 {company.blocco && (
-                  <div style={s.row}>
-                    <span style={s.label}>Blocco ammin.</span>
-                    <span style={{ ...s.val, color: '#d9534f', fontWeight: 500 }}><span style={{ ...s.dot, background: '#d9534f' }} />Attivo</span>
+                  <div style={s.row}><span style={s.label}>Blocco ammin.</span>
+                    <span style={{ ...s.valNw, color: '#d9534f', fontWeight: 500 }}><span style={{ ...s.dot, background: '#d9534f' }} />Attivo</span>
                   </div>
                 )}
-                {company.vat && <div style={s.row}><span style={s.label}>P. IVA</span><span style={s.val}>{company.vat}</span></div>}
-                {company.email && <div style={s.row}><span style={s.label}>Email</span><span style={s.val}>{company.email}</span></div>}
-                {company.phone && <div style={s.row}><span style={s.label}>Telefono</span><span style={s.val}>{company.phone}</span></div>}
-                {company.owner && <div style={s.row}><span style={s.label}>Referente</span><span style={s.val}>{company.owner}</span></div>}
-                {company.scadenza && <div style={s.row}><span style={s.label}>Scad. contratto</span><span style={s.val}>{company.scadenza}</span></div>}
+                {company.vat && <div style={s.row}><span style={s.label}>P. IVA</span><span style={s.valNw}>{company.vat}</span></div>}
+                {company.email && <div style={s.row}><span style={s.label}>Email</span><span style={s.valNw}>{company.email}</span></div>}
+                {company.phone && <div style={s.row}><span style={s.label}>Telefono</span><span style={s.valNw}>{company.phone}</span></div>}
+                {company.owner && <div style={s.row}><span style={s.label}>Referente</span><span style={s.valNw}>{company.owner}</span></div>}
+                {company.scadenza && <div style={s.row}><span style={s.label}>Scad. contratto</span><span style={s.valNw}>{company.scadenza}</span></div>}
               </div>
             )}
 
             {(calls[0] || tickets[0]) && (
               <div style={s.section}>
                 <div style={s.secTitle}><span>Ultima attività</span></div>
-                {calls[0] && <div style={s.row}><span style={s.label}>Chiamata</span><span style={s.val}>{formatDate(calls[0].startTime)}</span></div>}
-                {tickets[0] && <div style={s.row}><span style={s.label}>Ticket</span><span style={s.val}>{tickets[0].subject}</span></div>}
+                {calls[0] && <div style={s.row}><span style={s.label}>Chiamata</span><span style={s.valNw}>{formatDate(calls[0].startTime)}</span></div>}
+                {tickets[0] && <div style={s.row}><span style={s.label}>Ticket</span><span style={s.valNw}>{tickets[0].subject}</span></div>}
               </div>
             )}
 
