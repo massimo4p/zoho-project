@@ -104,20 +104,16 @@ async function getActivePhone() {
   }
 }
 
-// --- Debug: ultimo body webhook grezzo ricevuto ---
-
-let lastWebhookBody = null;
-
-app.get('/api/debug/last-webhook', (req, res) => {
-  res.json(lastWebhookBody);
-});
-
 function extractPhone(type, data) {
   if (type === 'call:start' || type === 'call:update' || type === 'call:end') {
+    // Ignora chiamate interne: il chiamante deve essere remoto
+    if (data?.caller?.type && data.caller.type.toLowerCase() !== 'remote') return null;
     return data?.caller?.phone ?? null;
   }
   if (type === 'call:live:progress') {
-    return data?.flows?.[0]?.caller?.phone ?? data?.flows?.[0]?.remotePhone ?? null;
+    const flow = data?.flows?.[0];
+    if (flow?.caller?.type && flow.caller.type.toUpperCase() !== 'REMOTE') return null;
+    return flow?.caller?.phone ?? flow?.remotePhone ?? null;
   }
   return null;
 }
@@ -146,8 +142,6 @@ app.post('/api/webhook/call', async (req, res) => {
   }
 
   const { type, data } = req.body;
-  lastWebhookBody = req.body;
-
   const phone = extractPhone(type, data);
   const callId = extractCallId(type, data);
 
