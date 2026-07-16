@@ -96,6 +96,52 @@ router.get('/search', async (req, res) => {
   }
 });
 
+router.post('/create', async (req, res) => {
+  try {
+    const { type, firstName, lastName, phone, company, accountId, role, email } = req.body;
+    const token = await getZohoToken();
+    const headers = {
+      Authorization: `Zoho-oauthtoken ${token}`,
+      'Content-Type': 'application/json',
+    };
+
+    let url, payload;
+
+    if (type === 'Leads') {
+      url = `${ZOHO_API}/Leads`;
+      payload = { data: [{
+        First_Name: firstName || undefined,
+        Last_Name:  lastName,
+        Phone:      phone,
+        Company:    company || 'Sconosciuta',
+        Title:      role || undefined,
+        Email:      email || undefined,
+      }] };
+    } else {
+      url = `${ZOHO_API}/Contacts`;
+      payload = { data: [{
+        First_Name:   firstName || undefined,
+        Last_Name:    lastName,
+        Phone:        phone,
+        Account_Name: accountId ? { id: accountId } : undefined,
+        Title:        role || undefined,
+        Email:        email || undefined,
+      }] };
+    }
+
+    const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
+    const data = await r.json();
+    const id = data?.data?.[0]?.details?.id;
+    if (id) {
+      res.json({ ok: true, id, type });
+    } else {
+      res.status(400).json({ ok: false, error: data });
+    }
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 router.post('/', async (req, res) => {
   try {
     const { firstName, lastName, phone, company } = req.body;
@@ -189,5 +235,26 @@ router.get('/company/:accountId', async (req, res) => {
   }
 });
 
+// --- Ricerca aziende per autocomplete ---
+router.get('/accounts/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 2) return res.json([]);
+    const token = await getZohoToken();
+    const r = await fetch(
+      `${ZOHO_API}/Accounts/search?word=${encodeURIComponent(q)}&per_page=10`,
+      { headers: { Authorization: `Zoho-oauthtoken ${token}` } }
+    );
+    if (r.status === 204) return res.json([]);
+    const data = await r.json();
+    const accounts = (data?.data ?? []).map(a => ({
+      id:   a.id,
+      name: a.Account_Name ?? '',
+    }));
+    res.json(accounts);
+  } catch (e) {
+    res.json([]);
+  }
+});
 
 module.exports = router;
