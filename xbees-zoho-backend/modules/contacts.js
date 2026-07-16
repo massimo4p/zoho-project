@@ -75,6 +75,29 @@ router.get('/lookup', async (req, res) => {
   }
 });
 
+// --- Ricerca aziende per autocomplete (solo nome azienda) ---
+router.get('/accounts/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.length < 2) return res.json([]);
+    const token = await getZohoToken();
+    const criteria = encodeURIComponent(`(Account_Name:starts_with:${q})`);
+    const r = await fetch(
+      `${ZOHO_API}/Accounts/search?criteria=${criteria}&per_page=10`,
+      { headers: { Authorization: `Zoho-oauthtoken ${token}` } }
+    );
+    if (r.status === 204) return res.json([]);
+    const data = await r.json();
+    const accounts = (data?.data ?? []).map(a => ({
+      id:   a.id,
+      name: a.Account_Name ?? '',
+    }));
+    res.json(accounts);
+  } catch (e) {
+    res.json([]);
+  }
+});
+
 router.get('/search', async (req, res) => {
   try {
     const { q } = req.query;
