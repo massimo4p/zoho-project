@@ -29,6 +29,7 @@ router.get('/lookup', async (req, res) => {
         module:       'Contacts',
         name:         `${c.First_Name ?? ''} ${c.Last_Name ?? ''}`.trim(),
         organization: c.Account_Name?.name ?? '',
+	accountId:    c.Account_Name?.id ?? null,
         phone:        c.Phone ?? phone,
         url:          contactUrl(c.id),
       };
@@ -42,6 +43,7 @@ router.get('/lookup', async (req, res) => {
         module:       'Accounts',
         name:         a.Account_Name ?? '',
         organization: a.Account_Name ?? '',
+	accountId:    a.id,
         phone:        a.Phone ?? phone,
         url:          `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Accounts/${a.id}`,
       };
@@ -154,4 +156,38 @@ router.get('/debug/company/:accountId', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+
+// --- Dati azienda per la scheda estesa ---
+router.get('/company/:accountId', async (req, res) => {
+  try {
+    const token = await getZohoToken();
+    const headers = { Authorization: `Zoho-oauthtoken ${token}` };
+    const { accountId } = req.params;
+
+    const r = await fetch(`${ZOHO_API}/Accounts/${accountId}`, { headers });
+    if (r.status === 204) return res.json(null);
+    const data = await r.json();
+    const a = data?.data?.[0];
+    if (!a) return res.json(null);
+
+    res.json({
+      id:        a.id,
+      name:      a.Account_Name ?? '',
+      email:     a.E_mail ?? null,
+      phone:     a.Phone ?? a.Cellulare ?? null,
+      website:   a.Website ?? null,
+      vat:       a.Partita_IVA ?? null,
+      stato:     a.Stato ?? null,
+      pagamenti: a.In_regola_con_i_pagamenti ?? null,
+      blocco:    a.Blocco_amministrativo ?? false,
+      owner:     a.Owner?.name ?? null,
+      scadenza:  a.Scadenza_Contratto ?? null,
+      url:       `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/Accounts/${a.id}`,
+    });
+  } catch (e) {
+    res.json(null);
+  }
+});
+
+
 module.exports = router;
