@@ -155,14 +155,21 @@ router.post('/create', async (req, res) => {
     const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
     const data = await r.json();
     const id = data?.data?.[0]?.details?.id;
-    if (id) {
-      res.json({ ok: true, id, type });
-    } else {
-      res.status(400).json({ ok: false, error: data });
+        if (id) {
+          const tab = type === 'Leads' ? 'Leads' : 'Contacts';
+          res.json({
+          ok: true,
+          id,
+          type,
+          url: `https://crm.zoho.eu/crm/org${process.env.ZOHO_ORG_ID}/tab/${tab}/${id}`,
+       });
+       } else {
+         res.status(400).json({ ok: false, error: data });
+       }
+     } catch (e) {
+       res.status(500).json({ ok: false, error: e.message });
     }
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
-  }
+
 });
 
 router.post('/', async (req, res) => {
