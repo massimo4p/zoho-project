@@ -120,4 +120,28 @@ router.post('/', async (req, res) => {
   }
 });
 
+// --- Debug: cosa possiamo recuperare per un'azienda ---
+router.get('/debug/company/:accountId', async (req, res) => {
+  try {
+    const token = await getZohoToken();
+    const headers = { Authorization: `Zoho-oauthtoken ${token}` };
+    const { accountId } = req.params;
+
+    const [accRes, contRes] = await Promise.all([
+      fetch(`${ZOHO_API}/Accounts/${accountId}`, { headers }),
+      fetch(`${ZOHO_API}/Accounts/${accountId}/Contacts`, { headers }),
+    ]);
+
+    const account = await accRes.json();
+    const contacts = await contRes.json();
+
+    res.json({
+      account: account?.data?.[0] ?? null,
+      contacts: contacts?.data ?? [],
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
