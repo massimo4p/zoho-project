@@ -8,8 +8,6 @@ const IS_PREVIEW = VIEW === 'ui';
 
 const DESK_BASE = 'https://desk.zoho.eu/agent/4personality';
 const MAX_ITEMS = 10;
-const RETRY_MS = 2000;
-const RETRY_MAX = 6;
 
 interface Contact {
   id?: string;
@@ -145,52 +143,75 @@ export default function App() {
   const [acOptions, setAcOptions] = useState<AccountOption[]>([]);
   const [creating, setCreating] = useState(false);
   const [createdUrl, setCreatedUrl] = useState<string | null>(null);
-  const [retryFailed, setRetryFailed] = useState(false);
+  const [createFailed, setCreateFailed] = useState(false);
 
-  const lookupRef = useRef<((p: string, force?: boolean) => Promise<boolean>) | null>(null);
+  const recordRef = useRef<((m: string, id: string) => Promise<boolean>) | null>(null);
 
   useEffect(() => {
     Client.getInstance().ready();
 
     let currentPhone: string | null = null;
 
+    const resetForm = () => {
+      setNewFirst(''); setNewLast(''); setNewCompany('');
+      setNewAccountId(null); setNewRole(''); setNewEmail('');
+      setNewType('Leads'); setAcOptions([]);
+    };
+
     const clearAll = () => {
       currentPhone = null;
       setContact(null); setCompany(null); setCalls([]); setTickets([]);
       setDeskAccountId(null); setShowTicketForm(false); setTicketDone(false);
-      setCreatedUrl(null); setRetryFailed(false); setCreating(false);
+      setCreatedUrl(null); setCreateFailed(false); setCreating(false);
+      resetForm();
     };
 
-    const tryLookup = async (phone: string, force = false): Promise<boolean> => {
-      if (!force && phone === currentPhone) return !!contact;
-      currentPhone = phone;
-      log.debug('tryLookup', { phone });
-      const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
-      const data = await r.json();
-      log.debug('contact', data);
-      if (!data) { setContact(null); setCompany(null); setCalls([]); setTickets([]); return false; }
-      setContact(data);
-      const mod = data.module ?? 'Contacts';
+    const loadExtras = async (module: string, id: string, accountId?: string | null) => {
       const [callsRes, deskRes] = await Promise.all([
-        fetch(`${BACKEND}/api/zoho/activities/${mod}/${data.id}`),
-        fetch(`${BACKEND}/api/zoho/desk/${mod}/${data.id}`),
+        fetch(`${BACKEND}/api/zoho/activities/${module}/${id}`),
+        fetch(`${BACKEND}/api/zoho/desk/${module}/${id}`),
       ]);
       setCalls(await callsRes.json());
       const deskData = await deskRes.json();
       setTickets(deskData.tickets ?? []);
       setDeskAccountId(deskData.deskAccountId ?? null);
-      if (data.accountId) {
+      if (accountId) {
         try {
-          const compRes = await fetch(`${BACKEND}/api/zoho/contacts/company/${data.accountId}`);
+          const compRes = await fetch(`${BACKEND}/api/zoho/contacts/company/${accountId}`);
           setCompany(await compRes.json());
         } catch (e) { log.error('company error', e); }
       } else {
         setCompany(null);
       }
+    };
+
+    const tryLookup = async (phone: string) => {
+      if (phone === currentPhone) return;
+      currentPhone = phone;
+      log.debug('tryLookup', { phone });
+      const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
+      const data = await r.json();
+      log.debug('contact', data);
+      if (!data) {
+        setContact(null); setCompany(null); setCalls([]); setTickets([]);
+        return;
+      }
+      setContact(data);
+      await loadExtras(data.module ?? 'Contacts', data.id, data.accountId);
+    };
+
+    const loadRecord = async (module: string, id: string) => {
+      log.debug('loadRecord', { module, id });
+      const r = await fetch(`${BACKEND}/api/zoho/contacts/record/${module}/${id}`);
+      const data = await r.json();
+      log.debug('record', data);
+      if (!data) return false;
+      setContact(data);
+      await loadExtras(module, id, data.accountId);
       return true;
     };
 
-    lookupRef.current = tryLookup;
+    recordRef.current = loadRecord;
 
     const applyPhone = async (phone: string | null) => {
       setActivePhone(phone);
@@ -243,7 +264,7 @@ export default function App() {
   const createRecord = async () => {
     if (!newLast.trim() || !activePhone) return;
     setCreating(true);
-    setRetryFailed(false);
+    setCreateFailed(false);
     try {
       const r = await fetch(`${BACKEND}/api/zoho/contacts/create`, {
         method: 'POST',
@@ -260,28 +281,24 @@ export default function App() {
         }),
       });
       const data = await r.json();
-      if (!data.ok) { setCreating(false); log.error('create failed', data); return; }
+      if (!data.ok) { setCreating(false); setCreateFailed(true); log.error('create failed', data); return; }
       setCreatedUrl(data.url ?? null);
 
-      for (let i = 0; i < RETRY_MAX; i++) {
-        await new Promise(res => setTimeout(res, RETRY_MS));
-        try {
-          const found = await lookupRef.current?.(activePhone, true);
-          if (found) { setCreating(false); return; }
-        } catch (e) { log.error('retry lookup error', e); }
-      }
+      const ok = await recordRef.current?.(data.type, data.id);
       setCreating(false);
-      setRetryFailed(true);
+      if (!ok) setCreateFailed(true);
+
+      setNewFirst(''); setNewLast(''); setNewCompany('');
+      setNewAccountId(null); setNewRole(''); setNewEmail('');
     } catch (e) {
       log.error('createRecord error', e);
       setCreating(false);
+      setCreateFailed(true);
     }
   };
 
   const openTickets = tickets.filter(t => isOpen(t.status)).length;
   const deskAccountUrl = deskAccountId ? `${DESK_BASE}/all/accounts/details/${deskAccountId}` : `${DESK_BASE}/all/tickets`;
-
-  const spinnerCss = <style>{`@keyframes zspin { to { transform: rotate(360deg); } }`}</style>;
 
   if (IS_PREVIEW) {
     if (loading) return <div style={{ ...s.pvWrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
@@ -307,23 +324,22 @@ export default function App() {
   if (creating) {
     return (
       <div style={s.wrap}>
-        {spinnerCss}
+        <style>{`@keyframes zspin { to { transform: rotate(360deg); } }`}</style>
         <div style={s.center}>
           <div style={s.spinner} />
           <div style={{ fontSize: 13 }}>Creazione in corso...</div>
-          <div style={{ fontSize: 11, color: '#aaa', marginTop: 6 }}>Attendo che Zoho aggiorni la rubrica</div>
         </div>
       </div>
     );
   }
 
-  if (!contact && retryFailed && createdUrl) {
+  if (!contact && createFailed && createdUrl) {
     return (
       <div style={s.wrap}>
         <div style={s.center}>
           <div style={{ fontSize: 22, color: '#1a9e6f', marginBottom: 8 }}>✓</div>
           <div style={{ fontSize: 14, fontWeight: 500 }}>Record creato</div>
-          <div style={{ fontSize: 12, color: '#888', marginTop: 4, marginBottom: 16 }}>Zoho ci sta ancora mettendo un po'</div>
+          <div style={{ fontSize: 12, color: '#888', marginTop: 4, marginBottom: 16 }}>Non riesco a caricare la scheda</div>
           <a href={createdUrl} target="_blank" rel="noreferrer" style={{ ...s.btn, textDecoration: 'none', padding: '8px 16px', flex: 'none' }}>Apri in Zoho ↗</a>
         </div>
       </div>
