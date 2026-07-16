@@ -140,4 +140,305 @@ export default function App() {
       setTicketDone(false);
     };
 
-    const
+    const tryLookup = async (phone: string) => {
+      if (phone === currentPhone) return;
+      currentPhone = phone;
+      log.debug('tryLookup', { phone });
+      const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
+      const data = await r.json();
+      log.debug('contact', data);
+      if (!data) { clearAll(); return; }
+      setContact(data);
+
+      const mod = data.module ?? 'Contacts';
+      const [callsRes, deskRes] = await Promise.all([
+        fetch(`${BACKEND}/api/zoho/activities/${mod}/${data.id}`),
+        fetch(`${BACKEND}/api/zoho/desk/${mod}/${data.id}`),
+      ]);
+      setCalls(await callsRes.json());
+      const deskData = await deskRes.json();
+      setTickets(deskData.tickets ?? []);
+      setDeskAccountId(deskData.deskAccountId ?? null);
+
+      if (data.accountId) {
+        try {
+          const compRes = await fetch(`${BACKEND}/api/zoho/contacts/company/${data.accountId}`);
+          const comp = await compRes.json();
+          log.debug('company', comp);
+          setCompany(comp);
+        } catch (e) {
+          log.error('company error', e);
+        }
+      }
+    };
+
+    const applyPhone = async (phone: string | null) => {
+      if (phone) {
+        try { await tryLookup(phone); } catch (e) { log.error('lookup error', e); }
+      } else {
+        clearAll();
+      }
+      setLoading(false);
+    };
+
+    const es = new EventSource(`${BACKEND}/api/zoho/events`);
+    es.onmessage = (ev) => {
+      try {
+        const { phone } = JSON.parse(ev.data);
+        log.info('sse phone', phone);
+        applyPhone(phone);
+      } catch (e) {
+        log.error('sse parse error', e);
+      }
+    };
+    es.onerror = (e) => { log.error('sse error', e); };
+
+    return () => { es.close(); };
+  }, []);
+
+  const createTicket = async () => {
+    if (!ticketSubject.trim() || !contact) return;
+    setTicketLoading(true);
+    try {
+      const r = await fetch(`${BACKEND}/api/zoho/desk/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: ticketSubject,
+          description: ticketDesc,
+          contactName: contact.name,
+          contactPhone: contact.phone,
+        }),
+      });
+      const data = await r.json();
+      if (data.ok) {
+        setTicketDone(true);
+        setShowTicketForm(false);
+        setTicketSubject('');
+        setTicketDesc('');
+      }
+    } catch (e) {
+      log.error('createTicket error', e);
+    } finally {
+      setTicketLoading(false);
+    }
+  };
+
+  const openTickets = tickets.filter(t => isOpen(t.status)).length;
+  const deskAccountUrl = deskAccountId
+    ? `${DESK_BASE}/all/accounts/details/${deskAccountId}`
+    : `${DESK_BASE}/all/tickets`;
+
+  // ---------- ANTEPRIMA (v=ui) ----------
+  if (IS_PREVIEW) {
+    if (loading) return <div style={{ ...s.pvWrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
+    if (!contact) return <div style={{ ...s.pvWrap, alignItems: 'center', justifyContent: 'center' }}><div style={s.empty}>Nessun contatto Zoho</div></div>;
+
+    return (
+      <div style={s.pvWrap}>
+        <a style={s.pvTile} href={contact.url} target="_blank" rel="noreferrer">
+          <div style={s.pvNum}>{calls.length}</div>
+          <div style={s.pvLbl}>Chiamate</div>
+          <div style={s.pvArrow}>Apri in CRM ↗</div>
+        </a>
+        <a style={s.pvTile} href={deskAccountUrl} target="_blank" rel="noreferrer">
+          <div style={{ ...s.pvNum, color: openTickets > 0 ? '#e08a00' : '#1a9e6f' }}>{openTickets}</div>
+          <div style={s.pvLbl}>Ticket aperti</div>
+          <div style={s.pvArrow}>Apri in Desk ↗</div>
+        </a>
+      </div>
+    );
+  }
+
+  // ---------- ESTESA (v=f) ----------
+  if (loading) return <div style={{ ...s.wrap, alignItems: 'center', justifyContent: 'center' }}>Caricamento...</div>;
+  if (!contact) return <div style={s.wrap}><div style={s.empty}>Nessun contatto Zoho trovato</div></div>;
+
+  const initials = contact.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
+  const pagamentiOk = company?.pagamenti === 'SI';
+  const statoAttiva = company?.stato === 'Attiva';
+
+  return (
+    <div style={s.wrap}>
+      <div style={s.header}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 10 }}>
+          <div style={s.avatar}>{initials}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={s.name}>
+              <a href={contact.url} target="_blank" rel="noreferrer" style={{ color: '#1a1a1a', textDecoration: 'none' }}>{contact.name}</a>
+            </div>
+            <div style={s.sub}>{contact.organization} · {contact.phone}</div>
+          </div>
+        </div>
+        <div style={s.tabs}>
+          {(['summary', 'calls', 'desk'] as Tab[]).map(t => (
+            <div key={t} style={tab === t ? s.tabActive : s.tab} onClick={() => setTab(t)}>
+              {t === 'summary' ? 'Riepilogo' : t === 'calls' ? `Chiamate (${calls.length})` : `Ticket (${tickets.length})`}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={s.body}>
+        {tab === 'summary' && (
+          <>
+            <div style={s.stat}>
+              <div style={s.statBox}>
+                <div style={s.statNum}>{calls.length}</div>
+                <div style={s.statLbl}>Chiamate</div>
+              </div>
+              <div style={s.statBox}>
+                <div style={s.statNum}>{tickets.length}</div>
+                <div style={s.statLbl}>Ticket</div>
+              </div>
+              <div style={s.statBox}>
+                <div style={{ ...s.statNum, color: openTickets > 0 ? '#e08a00' : '#1a9e6f' }}>{openTickets}</div>
+                <div style={s.statLbl}>Aperti</div>
+              </div>
+            </div>
+
+            {company && (
+              <div style={s.section}>
+                <div style={s.secTitle}>
+                  <span>Azienda</span>
+                  <a style={s.secLink} href={company.url} target="_blank" rel="noreferrer">Apri ↗</a>
+                </div>
+                {company.stato && (
+                  <div style={s.row}>
+                    <span style={s.label}>Stato</span>
+                    <span style={s.val}>
+                      <span style={{ ...s.dot, background: statoAttiva ? '#1a9e6f' : '#d9534f' }} />
+                      {company.stato}
+                    </span>
+                  </div>
+                )}
+                {company.pagamenti && (
+                  <div style={s.row}>
+                    <span style={s.label}>Pagamenti</span>
+                    <span style={s.val}>
+                      <span style={{ ...s.dot, background: pagamentiOk ? '#1a9e6f' : '#d9534f' }} />
+                      {pagamentiOk ? 'In regola' : company.pagamenti}
+                    </span>
+                  </div>
+                )}
+                {company.blocco && (
+                  <div style={s.row}>
+                    <span style={s.label}>Blocco ammin.</span>
+                    <span style={{ ...s.val, color: '#d9534f', fontWeight: 500 }}>
+                      <span style={{ ...s.dot, background: '#d9534f' }} />Attivo
+                    </span>
+                  </div>
+                )}
+                {company.vat && (
+                  <div style={s.row}><span style={s.label}>P. IVA</span><span style={s.val}>{company.vat}</span></div>
+                )}
+                {company.email && (
+                  <div style={s.row}><span style={s.label}>Email</span><span style={s.val}>{company.email}</span></div>
+                )}
+                {company.phone && (
+                  <div style={s.row}><span style={s.label}>Telefono</span><span style={s.val}>{company.phone}</span></div>
+                )}
+                {company.owner && (
+                  <div style={s.row}><span style={s.label}>Referente</span><span style={s.val}>{company.owner}</span></div>
+                )}
+                {company.scadenza && (
+                  <div style={s.row}><span style={s.label}>Scad. contratto</span><span style={s.val}>{company.scadenza}</span></div>
+                )}
+              </div>
+            )}
+
+            {(calls[0] || tickets[0]) && (
+              <div style={s.section}>
+                <div style={s.secTitle}><span>Ultima attività</span></div>
+                {calls[0] && (
+                  <div style={s.row}>
+                    <span style={s.label}>Chiamata</span>
+                    <span style={s.val}>{formatDate(calls[0].startTime)}</span>
+                  </div>
+                )}
+                {tickets[0] && (
+                  <div style={s.row}>
+                    <span style={s.label}>Ticket</span>
+                    <span style={s.val}>{tickets[0].subject}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {ticketDone && <div style={s.success}>✓ Ticket creato</div>}
+
+            {showTicketForm ? (
+              <div style={{ marginTop: 16 }}>
+                <input
+                  style={s.input}
+                  placeholder="Oggetto del ticket *"
+                  value={ticketSubject}
+                  onChange={e => setTicketSubject(e.target.value)}
+                />
+                <textarea
+                  style={s.textarea}
+                  placeholder="Descrizione (opzionale)"
+                  value={ticketDesc}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTicketDesc(e.target.value)}
+                />
+                <div style={s.actions}>
+                  <button style={{ ...s.btn, color: '#aaa', borderColor: '#ddd' }} onClick={() => setShowTicketForm(false)}>Annulla</button>
+                  <button style={s.btnPrimary} onClick={createTicket} disabled={ticketLoading}>
+                    {ticketLoading ? '...' : 'Crea ticket'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={s.actions}>
+                <button style={s.btn} onClick={() => { setShowTicketForm(true); setTicketDone(false); }}>🎫 Nuovo ticket</button>
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'calls' && (
+          calls.length === 0
+            ? <div style={s.empty}>Nessuna chiamata trovata</div>
+            : <>
+                {calls.slice(0, MAX_ITEMS).map(c => (
+                  <div key={c.id} style={s.card}>
+                    <div style={s.cardTitle}>{c.subject}</div>
+                    <div style={s.cardMeta}>
+                      {formatDate(c.startTime)}
+                      {formatDuration(c.duration) && ` · ${c.duration}`}
+                    </div>
+                    {c.note && <div style={{ ...s.cardMeta, marginTop: 6 }}>{c.note}</div>}
+                  </div>
+                ))}
+                <a style={s.seeAll} href={contact.url} target="_blank" rel="noreferrer">Vedi tutto in CRM ↗</a>
+              </>
+        )}
+
+        {tab === 'desk' && (
+          tickets.length === 0
+            ? <div style={s.empty}>Nessun ticket trovato</div>
+            : <>
+                {tickets.slice(0, MAX_ITEMS).map(t => (
+                  <a key={t.id}
+                    href={`${DESK_BASE}/all/tickets/detail/${t.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={s.cardLink}
+                  >
+                    <div style={s.cardTitle}>{t.subject}</div>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 4, alignItems: 'center' }}>
+                      <div style={{ ...s.badge, background: `${statusColor[t.status] ?? '#aaa'}22`, color: statusColor[t.status] ?? '#aaa' }}>
+                        {t.status}
+                      </div>
+                      {t.channel && <div style={{ ...s.badge, background: '#f0f0f0', color: '#888' }}>{t.channel}</div>}
+                    </div>
+                    <div style={s.cardMeta}>{formatDate(t.createdTime)}</div>
+                  </a>
+                ))}
+                <a style={s.seeAll} href={deskAccountUrl} target="_blank" rel="noreferrer">Vedi tutti i ticket in Desk ↗</a>
+              </>
+        )}
+      </div>
+    </div>
+  );
+}
