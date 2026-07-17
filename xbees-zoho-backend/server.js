@@ -63,7 +63,7 @@ app.get('/api/zoho/events', (req, res) => {
 
 // --- PocketBase: tracciamento chiamate attive (per call_id) ---
 
-async function upsertActiveCallById(callId, active, phone) {
+async function upsertActiveCallById(callId, active, phone, extra = {}) {
   try {
     const filter = encodeURIComponent(`call_id='${callId}'`);
     const searchRes = await fetch(
@@ -72,9 +72,10 @@ async function upsertActiveCallById(callId, active, phone) {
     const searchData = await searchRes.json();
     const existing = searchData?.items?.[0];
 
+    const body = { active, ...extra };
+    if (phone) body.phone = phone;
+
     if (existing) {
-      const body = { active };
-      if (phone) body.phone = phone;
       await fetch(`${PB_URL}/api/collections/active_calls/records/${existing.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -84,13 +85,14 @@ async function upsertActiveCallById(callId, active, phone) {
       await fetch(`${PB_URL}/api/collections/active_calls/records`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, active, call_id: callId }),
+        body: JSON.stringify({ ...body, phone, call_id: callId }),
       });
     }
   } catch (e) {
     console.error('[pocketbase] errore:', e.message);
   }
 }
+
 
 async function getActivePhone() {
   try {
@@ -126,6 +128,26 @@ function extractCallId(type, data) {
   return null;
 }
 
+function extractCallData(type, data) {
+  if (type === 'call:live:progress') {
+    const f = data?.flows?.[0];
+    if (!f) return {};
+    return {
+      direction:   f.direction ?? null,
+      start_time:  data.start ?? null,
+      wait_time:   Math.round((f.waitTime ?? 0) / 1000),
+      talk_time:   Math.round((f.talkTime ?? 0) / 1000),
+      answered_by: f.callee?.name ? `${f.callee.name} (${f.callee.phone ?? ''})`.trim() : null,
+    };
+  }
+  if (type === 'call:end') {
+    return {
+      end_cause: data?.endCauseStr ?? null,
+    };
+  }
+  return {};
+}
+
 app.post('/api/webhook/call', async (req, res) => {
   const secret = process.env.WILDIX_WEBHOOK_SECRET;
   const signature = req.headers['x-signature'];
@@ -151,11 +173,11 @@ app.post('/api/webhook/call', async (req, res) => {
   const isEndedEvent = type === 'call:end' || type === 'call:live:completed';
 
   if (isActiveEvent && callId) {
-    await upsertActiveCallById(callId, true, phone);
+    await upsertActiveCallById(callId, true, phone, extractCallData(type, data));
   }
 
   if (isEndedEvent && callId) {
-    await upsertActiveCallById(callId, false, phone);
+    await upsertActiveCallById(callId, false, phone, extractCallData(type, data));
   }
 
   // Dopo ogni aggiornamento, notifica i widget con lo stato corrente
