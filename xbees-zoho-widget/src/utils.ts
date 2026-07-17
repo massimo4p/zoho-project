@@ -33,3 +33,33 @@ export const deskAccountUrl = (deskAccountId: string | null) =>
 
 export const deskTicketUrl = (ticketId: string) =>
   `${DESK_BASE}/all/tickets/detail/${ticketId}`;
+
+export const isMissed = (c: { seconds: number; direction: string }) =>
+  c.direction === 'IN' && c.seconds === 0;
+
+export const callLabel = (c: { seconds: number; direction: string }) => {
+  if (isMissed(c)) return 'Persa';
+  return c.direction === 'OUT' ? 'In uscita' : 'In entrata';
+};
+
+export const callIcon = (c: { seconds: number; direction: string }) => {
+  if (isMissed(c)) return '✕';
+  return c.direction === 'OUT' ? '↗' : '↙';
+};
+
+export const relativeDate = (iso: string) => {
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    const yest = new Date(now);
+    yest.setDate(now.getDate() - 1);
+    const isYest = d.toDateString() === yest.toDateString();
+    const time = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    if (sameDay) return `Oggi · ${time}`;
+    if (isYest) return `Ieri · ${time}`;
+    return `${d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })} · ${time}`;
+  } catch {
+    return iso;
+  }
+};

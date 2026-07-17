@@ -49,8 +49,13 @@ export interface Call {
   subject: string;
   startTime: string;
   duration: string;
-  note?: string;
-}
+  seconds: number;
+  direction: 'IN' | 'OUT';
+  phone: string;
+  extension: string;
+  note?: string | null;
+  extId?: string | null;
+}}
 
 export interface Ticket {
   id: string;
