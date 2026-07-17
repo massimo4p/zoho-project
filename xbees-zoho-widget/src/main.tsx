@@ -27,18 +27,21 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
   if (!phone) { resolve(null); return; }
   try {
     const r = await fetch(`${BACKEND}/api/zoho/contacts/lookup?phone=${encodeURIComponent(phone)}`);
-    const contact = await r.json();
-    log.debug('onLookupAndMatchContact result', contact);
+    const data = await r.json();
+    log.debug('lookup result', data);
+    if (!data) { resolve(null); return; }
+
+    // oggetto conforme a ContactShape dell'SDK: solo i campi previsti
+    const contact = {
+      id: data.id,
+      name: data.name,
+      phone: data.phone,
+      organization: data.organization || undefined,
+    };
+    log.debug('resolve contact', contact);
     resolve(contact);
-    if (contact) client.contactMatchUpdated(payload, contact);
   } catch (e: any) {
     log.error('onLookupAndMatchContact failed', e.message);
     reject(e);
   }
-});
-
-Client.initialize(async () => {
-  log.info('UI mode init');
-  const { startUI } = await import('./startUI');
-  startUI();
 });
