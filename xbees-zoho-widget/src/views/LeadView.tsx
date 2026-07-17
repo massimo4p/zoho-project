@@ -37,7 +37,7 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
 
       <div style={s.headCard}>
         <div style={s.avatarLd}>{initialsOf(contact.name)}</div>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div style={s.name}>
             <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
           </div>
@@ -46,8 +46,8 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
             {lead?.status && <span style={s.pillLead}>{lead.status.toUpperCase()}</span>}
             <span style={s.headSub}>
               {contact.organization} · <span style={s.headPhone}>{contact.phone}</span>
+              {lead?.owner && ` · ${lead.owner}`}
             </span>
-            {lead?.owner && <span style={s.headSub}>· {lead.owner}</span>}
           </div>
         </div>
         <a href={contact.url} target="_blank" rel="noreferrer" style={s.headLink}>Apri in CRM ↗</a>
@@ -75,7 +75,7 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
 
         <div style={s.card}>
           <div style={s.secHead}>
-            <div style={{ ...s.secLbl, marginBottom: 0 }}>Cronologia chiamate</div>
+            <div style={{ ...s.secLbl, marginBottom: 0 }}>Chiamate</div>
             <span style={s.count}>{calls.length} TOTALI</span>
           </div>
 
@@ -93,14 +93,9 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
                       <div style={s.callMeta}>{relativeDate(c.startTime)}</div>
                     </div>
                     <div style={s.callRight}>
-                      {missed ? (
-                        <div style={s.callMiss}>Non risposta</div>
-                      ) : (
-                        <>
-                          <div style={s.callDur}>{c.duration}</div>
-                          <div style={s.callOk}>Conclusa</div>
-                        </>
-                      )}
+                      {missed
+                        ? <div style={s.callMiss}>Non risposta</div>
+                        : <div style={s.callDur}>{c.duration}</div>}
                     </div>
                   </div>
                 );
@@ -111,6 +106,10 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
           {calls.length > MAX_ITEMS && (
             <a style={s.seeAll} href={contact.url} target="_blank" rel="noreferrer">Vedi tutte in CRM ↗</a>
           )}
+        </div>
+
+        <div style={s.cardFree}>
+          <div style={s.freeLbl}>spazio disponibile</div>
         </div>
 
       </div>

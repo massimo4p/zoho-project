@@ -4,7 +4,7 @@ export const s: Record<string, React.CSSProperties> = {
   wrap:      { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', background: '#F6F6F7', boxSizing: 'border-box' as const, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' },
 
   // header: largo 76% cosi non finisce sotto la barra telefono
-  headCard:  { background: '#fff', border: '1px solid #E8E8EA', borderRadius: 14, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12, width: '76%', boxSizing: 'border-box' as const, flexShrink: 0 },
+  headCard:  { background: '#fff', border: '1px solid #E8E8EA', borderRadius: 14, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10, width: '71%', boxSizing: 'border-box' as const, flexShrink: 0 },
   avatar:    { width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#6C63D8,#534AB7)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 },
   avatarLd:  { width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#F5C34B,#FBD87A)', color: '#5C3A05', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 },
   name:      { fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' },
@@ -19,7 +19,7 @@ export const s: Record<string, React.CSSProperties> = {
   pillOk:    { fontSize: 9, fontWeight: 600, padding: '1px 8px', borderRadius: 100, background: '#E7F6F0', color: '#0F6E56', border: '1px solid #C7EADD' },
   pillBad:   { fontSize: 9, fontWeight: 600, padding: '1px 8px', borderRadius: 100, background: '#FCEBEB', color: '#A32D2D', border: '1px solid #F3D2D2' },
 
-  body:      { flex: 1, display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: 8, minHeight: 0 },
+  body:      { flex: 1, display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: 8, minHeight: 0 },
   card:      { background: '#fff', border: '1px solid #E8E8EA', borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', minHeight: 0 },
 
   secLbl:    { fontSize: 9, fontWeight: 600, color: '#999', letterSpacing: '0.06em', marginBottom: 6, textTransform: 'uppercase' as const },
@@ -33,7 +33,7 @@ export const s: Record<string, React.CSSProperties> = {
   btnGh:     { background: '#fff', color: '#666', border: '1px solid #E8E8EA', borderRadius: 10, padding: '8px 0', textAlign: 'center' as const, fontSize: 11, cursor: 'pointer', width: '100%', textDecoration: 'none', display: 'block', boxSizing: 'border-box' as const },
   actions:   { display: 'flex', gap: 6, marginTop: 8 },
 
-  callGrid:  { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 6, alignContent: 'start', overflowY: 'auto' as const, minHeight: 0 },
+  callGrid:  { display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto' as const, minHeight: 0 },
   callCard:  { background: '#FAFAFB', border: '1px solid #EDEDEF', borderRadius: 10, padding: '7px 9px', display: 'flex', alignItems: 'center', gap: 8 },
   callIcon:  { width: 24, height: 24, background: '#EFEFF2', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 },
   callIconX: { width: 24, height: 24, background: '#FBEDED', borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0, color: '#A32D2D' },
@@ -71,4 +71,6 @@ export const s: Record<string, React.CSSProperties> = {
   pvNum:     { fontSize: 28, fontWeight: 700, color: '#534AB7', lineHeight: 1 },
   pvLbl:     { fontSize: 12, color: '#888', marginTop: 6 },
   pvArrow:   { fontSize: 11, color: '#bbb', marginTop: 4 },
+  cardFree:  { background: '#fff', border: '1px dashed #D8D8DC', borderRadius: 14, padding: 12, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', minHeight: 0 },
+  freeLbl:   { fontSize: 9, color: '#BBB', textAlign: 'center' as const, paddingBottom: 8 },
 };

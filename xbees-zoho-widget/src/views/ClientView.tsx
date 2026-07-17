@@ -42,7 +42,7 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
 
       <div style={s.headCard}>
         <div style={s.avatar}>{initialsOf(contact.name)}</div>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div style={s.name}>
             <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
           </div>
@@ -56,8 +56,8 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
             {company?.blocco && <span style={s.pillBad}>BLOCCO AMMIN.</span>}
             <span style={s.headSub}>
               {contact.organization} · <span style={s.headPhone}>{contact.phone}</span>
+              {company?.owner && ` · ${company.owner}`}
             </span>
-            {company?.owner && <span style={s.headSub}>· {company.owner}</span>}
           </div>
         </div>
         <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLink}>Apri in CRM ↗</a>
@@ -87,11 +87,11 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
             </>
           ) : (
             <>
-              <div style={{ ...s.callGrid, gridTemplateColumns: '1fr' }}>
+              <div style={s.callGrid}>
                 {tickets.length === 0 ? (
                   <div style={s.emptyBox}>Nessun ticket</div>
                 ) : (
-                  tickets.slice(0, 4).map(t => (
+                  tickets.slice(0, MAX_ITEMS).map(t => (
                     <a key={t.id} href={deskTicketUrl(t.id)} target="_blank" rel="noreferrer" style={s.ticketCard}>
                       <div style={s.callTitle}>{t.subject}</div>
                       <div style={{ display: 'flex', gap: 5, marginTop: 3, alignItems: 'center' }}>
@@ -104,7 +104,7 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
               </div>
               {done && <div style={s.success}>✓ Ticket creato</div>}
               <button style={s.btnPri} onClick={() => { setShowForm(true); setDone(false); }}>Nuovo ticket</button>
-              {tickets.length > 4 && (
+              {tickets.length > MAX_ITEMS && (
                 <a style={s.seeAll} href={deskUrl} target="_blank" rel="noreferrer">Vedi tutti in Desk ↗</a>
               )}
             </>
@@ -113,7 +113,7 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
 
         <div style={s.card}>
           <div style={s.secHead}>
-            <div style={{ ...s.secLbl, marginBottom: 0 }}>Cronologia chiamate</div>
+            <div style={{ ...s.secLbl, marginBottom: 0 }}>Chiamate</div>
             <span style={s.count}>{calls.length} TOTALI</span>
           </div>
 
@@ -131,14 +131,9 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
                       <div style={s.callMeta}>{relativeDate(c.startTime)}</div>
                     </div>
                     <div style={s.callRight}>
-                      {missed ? (
-                        <div style={s.callMiss}>Non risposta</div>
-                      ) : (
-                        <>
-                          <div style={s.callDur}>{c.duration}</div>
-                          <div style={s.callOk}>Conclusa</div>
-                        </>
-                      )}
+                      {missed
+                        ? <div style={s.callMiss}>Non risposta</div>
+                        : <div style={s.callDur}>{c.duration}</div>}
                     </div>
                   </div>
                 );
@@ -149,6 +144,10 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
           {calls.length > MAX_ITEMS && (
             <a style={s.seeAll} href={contact.url} target="_blank" rel="noreferrer">Vedi tutte in CRM ↗</a>
           )}
+        </div>
+
+        <div style={s.cardFree}>
+          <div style={s.freeLbl}>spazio disponibile</div>
         </div>
 
       </div>
