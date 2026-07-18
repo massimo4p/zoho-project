@@ -5,6 +5,7 @@ const BACKEND = (import.meta as any).env?.VITE_BACKEND_URL ?? '';
 const client = Client.getInstance();
 
 log.info('daemon init', { backend: BACKEND });
+log.info('VARIANT', new URLSearchParams(location.search).get('v'));
 
 client.ready();
 client.isAuthorized();
