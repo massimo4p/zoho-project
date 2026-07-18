@@ -45,3 +45,12 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
     reject(e);
   }
 });
+
+log.info('booting UI');
+import('./startUI')
+  .then(({ startUI }) => {
+    log.info('startUI imported, mounting');
+    startUI();
+    log.info('startUI done');
+  })
+  .catch((e) => log.error('startUI import/mount failed', e?.message ?? e));
