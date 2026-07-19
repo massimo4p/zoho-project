@@ -12,6 +12,8 @@ export const s: Record<string, React.CSSProperties> = {
   headMeta:  { fontSize: 14, color: '#777', marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignItems: 'center' },
   statRows:  { display: 'flex', flexDirection: 'column' as const, gap: 7, flexShrink: 0 },
   statGroup: { display: 'flex', flexDirection: 'column' as const, gap: 8, margin: '0 auto', flexShrink: 0 },
+  statGrid:  { display: 'grid', gridTemplateColumns: 'auto auto', columnGap: 12, rowGap: 8, alignItems: 'center', justifyContent: 'center', justifySelf: 'center' },
+  statGKey:  { fontSize: 13, color: '#777', textAlign: 'right' as const },
   statBar:   { display: 'flex', justifyContent: 'center', gap: 28, borderTop: '0.5px solid #E8E8EA', marginTop: 16, paddingTop: 14, flexWrap: 'wrap' as const },
   statItem:  { display: 'flex', alignItems: 'center', gap: 8 },
   statRow:   { display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'flex-end' },

@@ -58,34 +58,33 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
   return (
     <div style={s.wrap}>
 
-      <div style={{ ...s.headCard, borderLeft: `4px solid ${barColor}`, borderRadius: '0 14px 14px 0' }}>
-        <div style={s.avatarLg}>{initialsOf(contact.name)}</div>
-        <div style={{ flexShrink: 0 }}>
-          <div style={s.nameRowLg}>
-            <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
-            <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLinkInline}>Apri in CRM ↗</a>
-          </div>
-          <div style={s.headMeta}>
-            <span>{contact.organization}</span>
-            <span>·</span>
-            <span style={s.headPhone}>{contact.phone}</span>
-            {company?.vat && <><span>·</span><span>P.IVA {company.vat}</span></>}
-          </div>
-        </div>
-        <div style={s.statGroup}>
-          <div style={s.statRow}>
-            <span style={s.statRowLbl}>Stato</span>
-            <span style={{ ...s.statPill, ...(statoAttiva ? s.scOk : s.scBad) }}>{capFirst(company?.stato)}</span>
-          </div>
-          <div style={s.statRow}>
-            <span style={s.statRowLbl}>Pagamenti</span>
-            <span style={{ ...s.statPill, ...payStyle(company?.pagamenti) }}>{capFirst(company?.pagamenti)}</span>
-          </div>
-          <div style={s.statRow}>
-            <span style={s.statRowLbl}>Blocco</span>
-            <span style={{ ...s.statPill, ...(company?.blocco ? s.scBad : s.scOk) }}>{company?.blocco ? 'Amministrativo' : 'No'}</span>
+      <div style={{ ...s.headCard, borderLeft: `4px solid ${barColor}`, borderRadius: '0 14px 14px 0', display: 'grid', gridTemplateColumns: '1.1fr 1fr 1fr', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, minWidth: 0 }}>
+          <div style={s.avatarLg}>{initialsOf(contact.name)}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={s.nameRowLg}>
+              <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
+              <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLinkInline}>Apri in CRM ↗</a>
+            </div>
+            <div style={s.headMeta}>
+              <span>{contact.organization}</span>
+              <span>·</span>
+              <span style={s.headPhone}>{contact.phone}</span>
+              {company?.vat && <><span>·</span><span>P.IVA {company.vat}</span></>}
+            </div>
           </div>
         </div>
+
+        <div style={s.statGrid}>
+          <span style={s.statGKey}>Stato</span>
+          <span style={{ ...s.statPill, ...(statoAttiva ? s.scOk : s.scBad) }}>{capFirst(company?.stato)}</span>
+          <span style={s.statGKey}>Pagamenti</span>
+          <span style={{ ...s.statPill, ...payStyle(company?.pagamenti) }}>{capFirst(company?.pagamenti)}</span>
+          <span style={s.statGKey}>Blocco</span>
+          <span style={{ ...s.statPill, ...(company?.blocco ? s.scBad : s.scOk) }}>{company?.blocco ? 'Amministrativo' : 'No'}</span>
+        </div>
+
+        <div />
       </div>
 
       <div style={s.body}>
