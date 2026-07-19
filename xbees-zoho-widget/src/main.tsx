@@ -5,7 +5,8 @@ const BACKEND = (import.meta as any).env?.VITE_BACKEND_URL ?? '';
 const client = Client.getInstance();
 
 log.info('daemon init', { backend: BACKEND });
-log.info('VARIANT', new URLSearchParams(location.search).get('v'));
+const variant = new URLSearchParams(location.search).get('v');
+log.info('VARIANT', variant);
 
 client.ready();
 client.isAuthorized();
@@ -47,11 +48,13 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
   }
 });
 
-log.info('booting UI');
-import('./startUI')
-  .then(({ startUI }) => {
-    log.info('startUI imported, mounting');
-    startUI();
-    log.info('startUI done');
-  })
-  .catch((e) => log.error('startUI import/mount failed', e?.message ?? e));
+if (variant === 'ui') {
+  log.info('booting UI');
+  import('./startUI')
+    .then(({ startUI }) => {
+      log.info('startUI imported, mounting');
+      startUI();
+      log.info('startUI done');
+    })
+    .catch((e) => log.error('startUI import/mount failed', e?.message ?? e));
+}
