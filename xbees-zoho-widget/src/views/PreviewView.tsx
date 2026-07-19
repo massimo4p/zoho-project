@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { initialsOf } from '../utils';
 import { updateLead } from '../api';
 import type { Contact, Company, Lead } from '../types';
 
@@ -17,13 +16,9 @@ interface Props {
 const c = {
   wrap:   { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', background: '#fff', padding: '10px 12px', boxSizing: 'border-box' as const, display: 'flex', flexDirection: 'column' as const, gap: 8 },
   head:   { display: 'flex', alignItems: 'center', gap: 10 },
-  av:     { width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, color: '#fff' },
-  avLead: { background: 'linear-gradient(135deg,#F5C34B,#FBD87A)', color: '#5C3A05' },
-  avAcc:  { background: 'linear-gradient(135deg,#6C63D8,#534AB7)' },
   mid:    { minWidth: 0, flex: 1 },
   nameRow:{ display: 'flex', alignItems: 'center', gap: 6 },
   name:   { fontSize: 14, fontWeight: 600, color: '#1a1a1a', textDecoration: 'none', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' },
-  sub:    { fontSize: 11, color: '#999', marginTop: 1, whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' },
   pill:   { fontSize: 9, fontWeight: 700, padding: '1px 7px', borderRadius: 100, flexShrink: 0, letterSpacing: '0.02em' },
   pillLead:{ background: '#FDF3DF', color: '#8A5B08', border: '1px solid #F2DFAF' },
   pillOk: { background: '#E7F6F0', color: '#0F6E56', border: '1px solid #C7EADD' },
@@ -70,7 +65,6 @@ export default function PreviewView({ loading, contact, company, lead, statuses 
   return (
     <div style={c.wrap}>
       <div style={c.head}>
-        <div style={{ ...c.av, ...(isLead ? c.avLead : c.avAcc) }}>{initialsOf(title)}</div>
         <div style={c.mid}>
           <div style={c.nameRow}>
             <a href={href} target="_blank" rel="noreferrer" style={c.name}>{title}</a>
@@ -81,7 +75,6 @@ export default function PreviewView({ loading, contact, company, lead, statuses 
               </span>
             )}
           </div>
-          <div style={c.sub}>{contact.phone}</div>
         </div>
         <a href={href} target="_blank" rel="noreferrer" style={c.link}>Apri in CRM ↗</a>
       </div>
@@ -100,7 +93,7 @@ export default function PreviewView({ loading, contact, company, lead, statuses 
               <div style={c.row}><span style={c.key}>Azienda</span><span style={c.val}>{lead?.company || contact.organization}</span></div>
             )}
           </div>
-          <a href={contact.url} target="_blank" rel="noreferrer" style={c.noteBtn}>+ Aggiungi note in CRM ↗</a>
+          <a href={contact.url} target="_blank" rel="noreferrer" style={c.noteBtn}>+ Aggiungi note ↗</a>
         </>
       ) : (
         <div style={c.rows}>
