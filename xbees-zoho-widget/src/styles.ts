@@ -4,7 +4,10 @@ export const s: Record<string, React.CSSProperties> = {
   wrap:      { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', background: '#F6F6F7', boxSizing: 'border-box' as const, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' },
 
   // header: largo 76% cosi non finisce sotto la barra telefono
-  headCard:  { background: '#fff', border: '1px solid #E8E8EA', borderRadius: 14, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 10, width: '71%', boxSizing: 'border-box' as const, flexShrink: 0 },
+  headCard:  { background: '#fff', border: '1px solid #E8E8EA', borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, width: '100%', boxSizing: 'border-box' as const, flexShrink: 0 },
+  avatarLg:  { width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg,#6C63D8,#534AB7)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, flexShrink: 0 },
+  nameLg:    { fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 6 },
+  headMeta:  { fontSize: 12, color: '#777', marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' as const, alignItems: 'center' },
   avatar:    { width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#6C63D8,#534AB7)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 },
   avatarLd:  { width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#F5C34B,#FBD87A)', color: '#5C3A05', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 },
   name:      { fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' },
@@ -73,14 +76,4 @@ export const s: Record<string, React.CSSProperties> = {
   pvArrow:   { fontSize: 11, color: '#bbb', marginTop: 4 },
   cardFree:  { background: '#fff', border: '1px dashed #D8D8DC', borderRadius: 14, padding: 12, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', minHeight: 0 },
   freeLbl:   { fontSize: 9, color: '#BBB', textAlign: 'center' as const, paddingBottom: 8 },
-
-  // --- Anteprima azienda / pagamenti ---
-  pvCol:     { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', height: '100vh', display: 'flex', flexDirection: 'column' as const, gap: 8, padding: 10, background: '#fff', boxSizing: 'border-box' as const, justifyContent: 'center' },
-  pvHead:    { display: 'flex', alignItems: 'center', gap: 8 },
-  pvTitle:   { fontSize: 15, fontWeight: 700, color: '#1a1a1a', textDecoration: 'none', letterSpacing: '-0.01em' },
-  pvSub:     { fontSize: 10, color: '#999', marginTop: 2 },
-  pvRows:    { display: 'flex', flexDirection: 'column' as const, gap: 0 },
-  pvRow:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: '1px solid #F2F2F4', fontSize: 12 },
-  pvKey:     { color: '#999', flexShrink: 0 },
-  pvVal:     { textAlign: 'right' as const, fontWeight: 600, color: '#1a1a1a', wordBreak: 'break-word' as const },
 };

@@ -41,9 +41,9 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
     <div style={s.wrap}>
 
       <div style={s.headCard}>
-        <div style={s.avatar}>{initialsOf(contact.name)}</div>
+        <div style={s.avatarLg}>{initialsOf(contact.name)}</div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={s.name}>
+          <div style={s.nameLg}>
             <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
           </div>
           <div style={s.headLine}>
@@ -54,10 +54,12 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
               </span>
             )}
             {company?.blocco && <span style={s.pillBad}>BLOCCO AMMIN.</span>}
-            <span style={s.headSub}>
-              {contact.organization} · <span style={s.headPhone}>{contact.phone}</span>
-              {company?.owner && ` · ${company.owner}`}
-            </span>
+          </div>
+          <div style={s.headMeta}>
+            <span>{contact.organization}</span>
+            <span>·</span>
+            <span style={s.headPhone}>{contact.phone}</span>
+            {company?.owner && <><span>·</span><span>{company.owner}</span></>}
           </div>
         </div>
         <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLink}>Apri in CRM ↗</a>
