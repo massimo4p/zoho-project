@@ -54,7 +54,7 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
 
       <div style={{ ...s.headCard, borderLeft: `4px solid ${barColor}`, borderRadius: '0 14px 14px 0' }}>
         <div style={s.avatarLg}>{initialsOf(contact.name)}</div>
-        <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ flexShrink: 0 }}>
           <div style={s.nameRowLg}>
             <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
             <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLinkInline}>Apri in CRM ↗</a>
@@ -66,7 +66,7 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
             {company?.vat && <><span>·</span><span>P.IVA {company.vat}</span></>}
           </div>
         </div>
-        <div style={s.statRows}>
+        <div style={s.statGroup}>
           <div style={s.statRow}>
             <span style={s.statRowLbl}>Stato</span>
             <span style={{ ...s.statPill, ...(statoAttiva ? s.scOk : s.scBad) }}>{company?.stato || '—'}</span>
