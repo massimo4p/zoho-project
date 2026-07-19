@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+ import React, { useEffect, useState } from 'react';
 import { s } from '../styles';
 import { MAX_ITEMS, initialsOf, isMissed, callLabel, callIcon, relativeDate } from '../utils';
 import { updateLead } from '../api';
