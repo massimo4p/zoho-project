@@ -143,6 +143,7 @@ export default function App() {
         contact={contact}
         company={company}
         lead={lead}
+        statuses={leadStatuses}
         callsCount={calls.length}
         openTickets={tickets.filter(t => isOpen(t.status)).length}
         deskAccountId={deskAccountId}
