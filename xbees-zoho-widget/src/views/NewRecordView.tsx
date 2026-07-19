@@ -47,28 +47,33 @@ export default function NewRecordView({ phone, onCreate }: Props) {
 
   return (
     <div style={s.wrap}>
-      <div style={s.headCard}>
+
+      <div style={{ ...s.headCard, borderLeft: '4px solid #E0A32E', borderRadius: '0 14px 14px 0' }}>
+        <div style={s.avatarUnknown}>?</div>
         <div style={{ minWidth: 0 }}>
-          <div style={s.name}>Numero sconosciuto</div>
-          <div style={s.headLine}>
-            <span style={s.headSub}><span style={s.headPhone}>{phone}</span></span>
+          <div style={s.nameLg}>Numero sconosciuto</div>
+          <div style={s.headMeta}>
+            <span style={s.headPhone}>{phone}</span>
+            <span>·</span>
+            <span>non presente in Zoho CRM</span>
           </div>
         </div>
       </div>
 
-      <div style={{ ...s.body, gridTemplateColumns: '1fr 1.5fr' }}>
+      <div style={s.body}>
         <div style={{ ...s.card, overflowY: 'auto' }}>
           <div style={s.secLbl}>Aggiungi in rubrica</div>
 
-          <label style={s.formLbl}>Tipo</label>
-          <select
-            style={s.select}
-            value={type}
-            onChange={e => { setType(e.target.value as 'Leads' | 'Contacts'); setAccountId(null); }}
-          >
-            <option value="Leads">Lead</option>
-            <option value="Contacts">Contatto</option>
-          </select>
+          <div style={s.typeToggle}>
+            <button
+              style={type === 'Leads' ? s.toggleOn : s.toggleOff}
+              onClick={() => { setType('Leads'); setAccountId(null); }}
+            >Lead</button>
+            <button
+              style={type === 'Contacts' ? s.toggleOn : s.toggleOff}
+              onClick={() => { setType('Contacts'); setAccountId(null); }}
+            >Contatto</button>
+          </div>
 
           <label style={s.formLbl}>Nome</label>
           <input style={s.input} value={first} onChange={e => setFirst(e.target.value)} />
@@ -113,6 +118,7 @@ export default function NewRecordView({ phone, onCreate }: Props) {
           </button>
         </div>
 
+        <div />
         <div />
       </div>
     </div>
