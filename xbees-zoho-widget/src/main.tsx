@@ -48,7 +48,7 @@ client.onLookupAndMatchContact(async (payload: any, resolve: any, reject: any) =
   }
 });
 
-if (variant === 'ui') {
+if (variant !== 'no-ui') {
   log.info('booting UI');
   import('./startUI')
     .then(({ startUI }) => {
