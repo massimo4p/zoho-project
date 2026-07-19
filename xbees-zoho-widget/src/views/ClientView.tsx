@@ -4,12 +4,12 @@ import { MAX_ITEMS, initialsOf, isOpen, isMissed, callLabel, callIcon, relativeD
 import { createTicket as apiCreateTicket } from '../api';
 import type { Contact, Company, Call, Ticket } from '../types';
 
-function payColor(v: string | null | undefined): string {
-  if (!v) return '#777';
-  const s = v.toLowerCase();
-  if (s === 'si' || s.includes('ok') || s.includes('regolare')) return '#0F6E56';
-  if (s.includes('verifica') || s.includes('sospeso') || s.includes('attesa')) return '#BA7517';
-  return '#A32D2D';
+function payStyle(v: string | null | undefined): React.CSSProperties {
+  if (!v) return s.scWarn;
+  const t = v.toLowerCase();
+  if (t === 'si' || t.includes('ok') || t.includes('regolare')) return s.scOk;
+  if (t.includes('verifica') || t.includes('sospeso') || t.includes('attesa')) return s.scWarn;
+  return s.scBad;
 }
 
 interface Props {
@@ -47,37 +47,32 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
   return (
     <div style={s.wrap}>
 
-      <div style={{ ...s.headCard, flexDirection: 'column', alignItems: 'stretch' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={s.avatarLg}>{initialsOf(contact.name)}</div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={s.nameRowLg}>
-              <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
-              <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLinkInline}>Apri in CRM ↗</a>
-            </div>
-            <div style={s.headMeta}>
-              <span>{contact.organization}</span>
-              <span>·</span>
-              <span style={s.headPhone}>{contact.phone}</span>
-              {company?.vat && <><span>·</span><span>P.IVA {company.vat}</span></>}
-            </div>
+      <div style={s.headCard}>
+        <div style={s.avatarLg}>{initialsOf(contact.name)}</div>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={s.nameRowLg}>
+            <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
+            <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLinkInline}>Apri in CRM ↗</a>
+          </div>
+          <div style={s.headMeta}>
+            <span>{contact.organization}</span>
+            <span>·</span>
+            <span style={s.headPhone}>{contact.phone}</span>
+            {company?.vat && <><span>·</span><span>P.IVA {company.vat}</span></>}
           </div>
         </div>
-
-        <div style={s.metricsRow}>
-          <div style={s.metric}>
-            <div style={s.metricLbl}>Stato</div>
-            <div style={{ ...s.metricVal, color: statoAttiva ? '#0F6E56' : '#A32D2D' }}>{company?.stato || '—'}</div>
+        <div style={s.statCards}>
+          <div style={{ ...s.statCard, ...(statoAttiva ? s.scOk : s.scBad) }}>
+            <div style={s.statLbl}>Stato</div>
+            <div style={s.statVal}>{company?.stato || '—'}</div>
           </div>
-          <div style={s.metricSep} />
-          <div style={s.metric}>
-            <div style={s.metricLbl}>Pagamenti</div>
-            <div style={{ ...s.metricVal, color: payColor(company?.pagamenti) }}>{company?.pagamenti || '—'}</div>
+          <div style={{ ...s.statCard, ...payStyle(company?.pagamenti) }}>
+            <div style={s.statLbl}>Pagamenti</div>
+            <div style={s.statVal}>{company?.pagamenti || '—'}</div>
           </div>
-          <div style={s.metricSep} />
-          <div style={s.metric}>
-            <div style={s.metricLbl}>Blocco</div>
-            <div style={{ ...s.metricVal, color: company?.blocco ? '#A32D2D' : '#0F6E56' }}>{company?.blocco ? 'Amministrativo' : 'No'}</div>
+          <div style={{ ...s.statCard, ...(company?.blocco ? s.scBad : s.scOk) }}>
+            <div style={s.statLbl}>Blocco</div>
+            <div style={s.statVal}>{company?.blocco ? 'Ammin.' : 'No'}</div>
           </div>
         </div>
       </div>
