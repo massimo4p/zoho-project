@@ -50,7 +50,7 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
             <span>{contact.organization}</span>
             <span>·</span>
             <span style={s.headPhone}>{contact.phone}</span>
-            {lead?.owner && <><span>·</span><span>{lead.owner}</span></>}
+            {lead?.vat && <><span>·</span><span>P.IVA {lead.vat}</span></>}
           </div>
         </div>
       </div>

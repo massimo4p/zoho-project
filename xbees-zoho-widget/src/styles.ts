@@ -4,12 +4,12 @@ export const s: Record<string, React.CSSProperties> = {
   wrap:      { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', fontSize: 13, color: '#1a1a1a', height: '100vh', background: '#F6F6F7', boxSizing: 'border-box' as const, padding: 10, display: 'flex', flexDirection: 'column', gap: 8, overflow: 'hidden' },
 
   // header: largo 76% cosi non finisce sotto la barra telefono
-  headCard:  { background: '#fff', border: '1px solid #E8E8EA', borderRadius: 14, padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14, width: '100%', boxSizing: 'border-box' as const, flexShrink: 0 },
-  avatarLg:  { width: 52, height: 52, borderRadius: 14, background: 'linear-gradient(135deg,#6C63D8,#534AB7)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, flexShrink: 0 },
-  nameLg:    { fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 6 },
-  nameRowLg: { display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6, flexWrap: 'wrap' as const, fontSize: 18, fontWeight: 700, letterSpacing: '-0.01em' },
-  headLinkInline: { fontSize: 11, fontWeight: 400, color: '#534AB7', textDecoration: 'none', flexShrink: 0 },
-  headMeta:  { fontSize: 12, color: '#777', marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' as const, alignItems: 'center' },
+  headCard:  { background: '#fff', border: '1px solid #E8E8EA', borderRadius: 14, padding: '26px 22px', display: 'flex', alignItems: 'center', gap: 16, width: '100%', boxSizing: 'border-box' as const, flexShrink: 0 },
+  avatarLg:  { width: 60, height: 60, borderRadius: 16, background: 'linear-gradient(135deg,#6C63D8,#534AB7)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, flexShrink: 0 },
+  nameLg:    { fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', marginBottom: 8 },
+  nameRowLg: { display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8, flexWrap: 'wrap' as const, fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em' },
+  headLinkInline: { fontSize: 13, fontWeight: 400, color: '#534AB7', textDecoration: 'none', flexShrink: 0 },
+  headMeta:  { fontSize: 14, color: '#777', marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' as const, alignItems: 'center' },
   avatar:    { width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#6C63D8,#534AB7)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 },
   avatarLd:  { width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#F5C34B,#FBD87A)', color: '#5C3A05', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 },
   name:      { fontSize: 14, fontWeight: 600, letterSpacing: '-0.01em' },

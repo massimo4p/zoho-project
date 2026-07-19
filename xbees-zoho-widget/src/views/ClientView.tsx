@@ -60,7 +60,7 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
             <span>{contact.organization}</span>
             <span>·</span>
             <span style={s.headPhone}>{contact.phone}</span>
-            {company?.owner && <><span>·</span><span>{company.owner}</span></>}
+            {company?.vat && <><span>·</span><span>P.IVA {company.vat}</span></>}
           </div>
         </div>
       </div>
