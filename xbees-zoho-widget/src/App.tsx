@@ -111,7 +111,19 @@ export default function App() {
       } catch (e) { log.error('sse parse error', e); }
     };
     es.onerror = (e) => { log.error('sse error', e); };
-    return () => { es.close(); };
+
+    // Quando l'iframe torna visibile, ricarica i dati freschi da Zoho
+    // (lo stato del lead potrebbe essere stato cambiato da un'altra vista)
+    const removeVis = Client.getInstance().onVisibilityChange((visible: boolean) => {
+      log.debug('visibility', { visible });
+      if (visible && currentPhone) {
+        const phone = currentPhone;
+        currentPhone = null;        // forza il bypass del dedup
+        applyPhone(phone);
+      }
+    });
+
+    return () => { es.close(); removeVis(); };
   }, []);
 
   const handleCreate = async (data: NewRecordData) => {
