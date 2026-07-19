@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { s } from '../styles';
 import { MAX_ITEMS, initialsOf, isMissed, callLabel, callIcon, relativeDate } from '../utils';
 import { updateLead } from '../api';
@@ -44,7 +44,6 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
           </div>
           <div style={s.headLine}>
             <span style={s.pillLead}>LEAD</span>
-            {lead?.status && <span style={s.pillLead}>{lead.status.toUpperCase()}</span>}
           </div>
           <div style={s.headMeta}>
             <span>{contact.organization}</span>
