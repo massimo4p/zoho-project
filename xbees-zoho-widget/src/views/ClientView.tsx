@@ -12,6 +12,12 @@ function payStyle(v: string | null | undefined): React.CSSProperties {
   return s.scBad;
 }
 
+function capFirst(v: string | null | undefined): string {
+  if (!v) return '—';
+  const t = v.toLowerCase();
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
 interface Props {
   contact: Contact;
   company: Company | null;
@@ -69,11 +75,11 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
         <div style={s.statGroup}>
           <div style={s.statRow}>
             <span style={s.statRowLbl}>Stato</span>
-            <span style={{ ...s.statPill, ...(statoAttiva ? s.scOk : s.scBad) }}>{company?.stato || '—'}</span>
+            <span style={{ ...s.statPill, ...(statoAttiva ? s.scOk : s.scBad) }}>{capFirst(company?.stato)}</span>
           </div>
           <div style={s.statRow}>
             <span style={s.statRowLbl}>Pagamenti</span>
-            <span style={{ ...s.statPill, ...payStyle(company?.pagamenti) }}>{company?.pagamenti || '—'}</span>
+            <span style={{ ...s.statPill, ...payStyle(company?.pagamenti) }}>{capFirst(company?.pagamenti)}</span>
           </div>
           <div style={s.statRow}>
             <span style={s.statRowLbl}>Blocco</span>
