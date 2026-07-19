@@ -17,8 +17,8 @@ const c = {
   wrap:   { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', background: '#fff', padding: '10px 12px', boxSizing: 'border-box' as const, display: 'flex', flexDirection: 'column' as const, gap: 8 },
   head:   { display: 'flex', alignItems: 'center', gap: 10 },
   mid:    { minWidth: 0, flex: 1 },
-  nameRow:{ display: 'flex', alignItems: 'center', gap: 6 },
-  name:   { fontSize: 14, fontWeight: 600, color: '#1a1a1a', textDecoration: 'none', whiteSpace: 'nowrap' as const, overflow: 'hidden', textOverflow: 'ellipsis' },
+  pillRow:{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 },
+  name:   { fontSize: 15, fontWeight: 700, color: '#1a1a1a', textDecoration: 'none', letterSpacing: '-0.01em', display: 'block' },
   pill:   { fontSize: 9, fontWeight: 700, padding: '1px 7px', borderRadius: 100, flexShrink: 0, letterSpacing: '0.02em' },
   pillLead:{ background: '#FDF3DF', color: '#8A5B08', border: '1px solid #F2DFAF' },
   pillOk: { background: '#E7F6F0', color: '#0F6E56', border: '1px solid #C7EADD' },
@@ -66,17 +66,17 @@ export default function PreviewView({ loading, contact, company, lead, statuses 
     <div style={c.wrap}>
       <div style={c.head}>
         <div style={c.mid}>
-          <div style={c.nameRow}>
-            <a href={href} target="_blank" rel="noreferrer" style={c.name}>{title}</a>
+          <div style={c.pillRow}>
             {isLead && <span style={{ ...c.pill, ...c.pillLead }}>LEAD</span>}
             {company && (
               <span style={{ ...c.pill, ...(company.blocco ? c.pillBad : c.pillOk) }}>
                 {company.blocco ? 'BLOCCATO' : 'ATTIVO'}
               </span>
             )}
+            <a href={href} target="_blank" rel="noreferrer" style={c.link}>Apri in CRM ↗</a>
           </div>
+          <a href={href} target="_blank" rel="noreferrer" style={c.name}>{title}</a>
         </div>
-        <a href={href} target="_blank" rel="noreferrer" style={c.link}>Apri in CRM ↗</a>
       </div>
 
       {isLead ? (
