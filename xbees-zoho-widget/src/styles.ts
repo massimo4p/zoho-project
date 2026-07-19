@@ -73,4 +73,14 @@ export const s: Record<string, React.CSSProperties> = {
   pvArrow:   { fontSize: 11, color: '#bbb', marginTop: 4 },
   cardFree:  { background: '#fff', border: '1px dashed #D8D8DC', borderRadius: 14, padding: 12, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', minHeight: 0 },
   freeLbl:   { fontSize: 9, color: '#BBB', textAlign: 'center' as const, paddingBottom: 8 },
+
+  // --- Anteprima azienda / pagamenti ---
+  pvCol:     { fontFamily: '-apple-system,BlinkMacSystemFont,sans-serif', height: '100vh', display: 'flex', flexDirection: 'column' as const, gap: 8, padding: 10, background: '#fff', boxSizing: 'border-box' as const, justifyContent: 'center' },
+  pvHead:    { display: 'flex', alignItems: 'center', gap: 8 },
+  pvTitle:   { fontSize: 15, fontWeight: 700, color: '#1a1a1a', textDecoration: 'none', letterSpacing: '-0.01em' },
+  pvSub:     { fontSize: 10, color: '#999', marginTop: 2 },
+  pvRows:    { display: 'flex', flexDirection: 'column' as const, gap: 0 },
+  pvRow:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: '1px solid #F2F2F4', fontSize: 12 },
+  pvKey:     { color: '#999', flexShrink: 0 },
+  pvVal:     { textAlign: 'right' as const, fontWeight: 600, color: '#1a1a1a', wordBreak: 'break-word' as const },
 };
