@@ -38,8 +38,9 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
       <div style={s.headCard}>
         <div style={s.avatarLd}>{initialsOf(contact.name)}</div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={s.nameLg}>
+          <div style={s.nameRowLg}>
             <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
+            <a href={contact.url} target="_blank" rel="noreferrer" style={s.headLinkInline}>Apri in CRM ↗</a>
           </div>
           <div style={s.headLine}>
             <span style={s.pillLead}>LEAD</span>
@@ -52,7 +53,6 @@ export default function LeadView({ contact, lead, calls, statuses }: Props) {
             {lead?.owner && <><span>·</span><span>{lead.owner}</span></>}
           </div>
         </div>
-        <a href={contact.url} target="_blank" rel="noreferrer" style={s.headLink}>Apri in CRM ↗</a>
       </div>
 
       <div style={s.body}>

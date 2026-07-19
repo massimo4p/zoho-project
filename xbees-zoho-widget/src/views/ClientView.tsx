@@ -43,8 +43,9 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
       <div style={s.headCard}>
         <div style={s.avatarLg}>{initialsOf(contact.name)}</div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={s.nameLg}>
+          <div style={s.nameRowLg}>
             <a href={contact.url} target="_blank" rel="noreferrer" style={s.nameLink}>{contact.name}</a>
+            <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLinkInline}>Apri in CRM ↗</a>
           </div>
           <div style={s.headLine}>
             {company?.stato && <span style={statoAttiva ? s.pillOk : s.pillBad}>{company.stato.toUpperCase()}</span>}
@@ -62,7 +63,6 @@ export default function ClientView({ contact, company, calls, tickets, deskAccou
             {company?.owner && <><span>·</span><span>{company.owner}</span></>}
           </div>
         </div>
-        <a href={company?.url ?? contact.url} target="_blank" rel="noreferrer" style={s.headLink}>Apri in CRM ↗</a>
       </div>
 
       <div style={s.body}>
